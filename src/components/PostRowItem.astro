@@ -1,0 +1,89 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../utils/dates';
+import { getPostUrl, getPostImage } from '../utils/posts';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { title, date } = post.data;
+const url = getPostUrl(post);
+const image = getPostImage(post);
+---
+
+<article class="post-row-item">
+  <div class="post-row-content">
+    <h3 class="post-row-title">
+      <a href={url}>{title}</a>
+    </h3>
+    <div class="post-meta">
+      <time datetime={date.toISOString()}>{formatDate(date)}</time>
+    </div>
+  </div>
+  {image && (
+    <a href={url} class="post-row-image">
+      <img src={image} alt={title} loading="lazy" />
+    </a>
+  )}
+</article>
+
+<style>
+  .post-row-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .post-row-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .post-row-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: var(--spacing-xs);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .post-row-title a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .post-row-title a:hover {
+    color: var(--accent);
+  }
+
+  .post-row-image {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .post-row-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .post-row-image:hover img {
+    transform: scale(1.05);
+  }
+
+  .post-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+</style>

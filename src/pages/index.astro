@@ -1,15 +1,19 @@
 ---
 import Listing from '../layouts/Listing.astro';
 import PostCard from '../components/PostCard.astro';
-import PostCardFeatured from '../components/PostCardFeatured.astro';
-import PostCardGrid from '../components/PostCardGrid.astro';
+import PostHero from '../components/PostHero.astro';
+import PostRowItem from '../components/PostRowItem.astro';
+import PostListItem from '../components/PostListItem.astro';
 import ViewToggle from '../components/ViewToggle.astro';
 import { getAllPosts } from '../utils/posts';
 
-const posts = await getAllPosts();
-const featuredPost = posts[0];
-const gridPosts = posts.slice(1, 7);
-const remainingPosts = posts.slice(7);
+const allPosts = await getAllPosts();
+
+// Filter entries only for magazine layout
+const entries = allPosts.filter(post => post.data.type === 'entry');
+const heroPost = entries[0];
+const popularPosts = entries.slice(1, 5);
+const longReadPosts = entries.slice(5);
 ---
 
 <Listing title="Home">
@@ -20,26 +24,37 @@ const remainingPosts = posts.slice(7);
 
   <!-- Magazine View -->
   <div class="view-magazine">
-    <PostCardFeatured post={featuredPost} />
+    <!-- Hero Section -->
+    <PostHero post={heroPost} />
 
-    <div class="posts-grid">
-      {gridPosts.map(post => <PostCardGrid post={post} />)}
-    </div>
-
-    {remainingPosts.length > 0 && (
-      <div class="posts-list-section">
-        <h2 class="section-title">More Posts</h2>
-        <div class="posts-list">
-          {remainingPosts.map(post => <PostCard post={post} />)}
+    <!-- Most Popular Section -->
+    {popularPosts.length > 0 && (
+      <section class="section-popular">
+        <div class="section-header">
+          <h2 class="section-title">Most Popular</h2>
+          <a href="/entries/" class="view-all">VIEW ALL →</a>
         </div>
-      </div>
+        <div class="popular-row">
+          {popularPosts.map(post => <PostRowItem post={post} />)}
+        </div>
+      </section>
+    )}
+
+    <!-- Long Reads Section -->
+    {longReadPosts.length > 0 && (
+      <section class="section-long-reads">
+        <h2 class="section-title">Long Reads</h2>
+        <div class="long-reads-list">
+          {longReadPosts.map(post => <PostListItem post={post} />)}
+        </div>
+      </section>
     )}
   </div>
 
   <!-- List View -->
   <div class="view-list">
     <div class="posts-list">
-      {posts.map(post => <PostCard post={post} />)}
+      {allPosts.map(post => <PostCard post={post} />)}
     </div>
   </div>
 </Listing>
@@ -49,41 +64,70 @@ const remainingPosts = posts.slice(7);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
   }
 
   .page-header .page-title {
     margin-bottom: 0;
   }
 
-  .posts-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--spacing-lg);
+  /* Section styling */
+  .section-popular,
+  .section-long-reads {
     margin-bottom: var(--spacing-xl);
   }
 
-  @media (max-width: 1200px) {
-    .posts-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (max-width: 768px) {
-    .posts-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .posts-list-section {
-    margin-top: var(--spacing-xl);
-  }
-
-  .section-title {
-    font-size: 1.25rem;
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: var(--spacing-lg);
     padding-bottom: var(--spacing-sm);
     border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .section-long-reads .section-title {
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .view-all {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .view-all:hover {
+    color: var(--accent);
+  }
+
+  /* Popular row - horizontal layout */
+  .popular-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-xl);
+  }
+
+  @media (max-width: 1200px) {
+    .popular-row {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--spacing-lg);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .popular-row {
+      grid-template-columns: 1fr;
+    }
   }
 
   /* View switching */

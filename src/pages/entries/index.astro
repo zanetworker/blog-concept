@@ -1,6 +1,6 @@
 ---
 import Listing from '../../layouts/Listing.astro';
-import PostCard from '../../components/PostCard.astro';
+import PostListItem from '../../components/PostListItem.astro';
 import { getPostsByType } from '../../utils/posts';
 
 const posts = await getPostsByType('entry');
@@ -8,8 +8,15 @@ const posts = await getPostsByType('entry');
 
 <Listing title="Entries">
   <h1 class="page-title">Entries</h1>
-  <p>Long-form blog posts and articles.</p>
-  <div class="posts-list">
-    {posts.map(post => <PostCard post={post} />)}
+  <p class="page-description">Long-form blog posts and articles.</p>
+  <div class="entries-list">
+    {posts.map(post => <PostListItem post={post} />)}
   </div>
 </Listing>
+
+<style>
+  .page-description {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+  }
+</style>

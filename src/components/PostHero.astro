@@ -1,0 +1,142 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../utils/dates';
+import { getPostUrl, getPostImage } from '../utils/posts';
+import TagList from './TagList.astro';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { title, date, tags, summary } = post.data;
+const url = getPostUrl(post);
+const image = getPostImage(post);
+---
+
+<article class:list={["post-hero", { "has-image": !!image }]}>
+  <div class="post-hero-content">
+    <div class="post-meta">
+      <time datetime={date.toISOString()}>{formatDate(date)}</time>
+    </div>
+    <h2 class="post-hero-title">
+      <a href={url}>{title}</a>
+    </h2>
+    {summary && <p class="post-hero-summary">{summary}</p>}
+    <TagList tags={tags} />
+    <a href={url} class="read-more">READ THE LATEST →</a>
+  </div>
+  {image && (
+    <div class="post-hero-image">
+      <img src={image} alt={title} loading="eager" />
+    </div>
+  )}
+</article>
+
+<style>
+  .post-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: 400px;
+    margin-bottom: var(--spacing-xl);
+    position: relative;
+  }
+
+  .post-hero.has-image {
+    grid-template-columns: 2fr 3fr;
+  }
+
+  .post-hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-right: var(--spacing-xl);
+    position: relative;
+    z-index: 2;
+  }
+
+  .post-hero-title {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+    line-height: 1.2;
+  }
+
+  .post-hero-title a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .post-hero-title a:hover {
+    color: var(--accent);
+  }
+
+  .post-hero-summary {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+  }
+
+  .read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    text-decoration: none;
+    margin-top: var(--spacing-md);
+  }
+
+  .read-more:hover {
+    color: var(--accent);
+  }
+
+  .post-hero-image {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+
+  .post-hero-image::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, var(--bg-primary) 0%, transparent 30%);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .post-hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .post-hero:hover .post-hero-image img {
+    transform: scale(1.02);
+  }
+
+  @media (max-width: 900px) {
+    .post-hero.has-image {
+      grid-template-columns: 1fr;
+    }
+
+    .post-hero-content {
+      padding-right: 0;
+      padding-bottom: var(--spacing-lg);
+    }
+
+    .post-hero-image {
+      max-height: 300px;
+    }
+
+    .post-hero-image::before {
+      background: linear-gradient(to top, var(--bg-primary) 0%, transparent 50%);
+    }
+
+    .post-hero-title {
+      font-size: 1.75rem;
+    }
+  }
+</style>
