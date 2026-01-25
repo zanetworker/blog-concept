@@ -1,0 +1,400 @@
+---
+// Table of Contents component - extracts headings client-side with hierarchy
+// Styled like Substack with dashes indicator and clean toggle
+---
+
+<nav class="toc" id="toc">
+  <!-- Dash indicators on the left -->
+  <div class="toc-dashes" id="toc-dashes">
+    <!-- Populated by JavaScript -->
+  </div>
+
+  <!-- Close button that appears when expanded -->
+  <button class="toc-close" id="toc-close" aria-label="Close table of contents">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 1L13 13M1 13L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <div class="toc-content" id="toc-content">
+    <div class="toc-header">CONTENTS</div>
+    <ul class="toc-list" id="toc-list">
+      <!-- Populated by JavaScript -->
+    </ul>
+  </div>
+</nav>
+
+<style>
+  .toc {
+    position: fixed;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: none;
+  }
+
+  @media (min-width: 1400px) {
+    .toc {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  }
+
+  /* Dash indicators - always visible */
+  .toc-dashes {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0.5rem 0;
+    cursor: pointer;
+  }
+
+  .toc-dash {
+    width: 12px;
+    height: 2px;
+    background: var(--text-muted);
+    border-radius: 1px;
+    transition: all 0.15s ease;
+  }
+
+  .toc-dash:hover {
+    background: var(--text-primary);
+  }
+
+  .toc-dash.active {
+    background: var(--text-primary);
+    width: 16px;
+  }
+
+  /* Close button */
+  .toc-close {
+    display: none;
+    width: 36px;
+    height: 36px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .toc-close:hover {
+    color: var(--text-primary);
+    border-color: var(--text-muted);
+  }
+
+  .toc.expanded .toc-close {
+    display: flex;
+  }
+
+  .toc.expanded .toc-dashes {
+    display: none;
+  }
+
+  /* Content panel */
+  .toc-content {
+    width: 240px;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1rem;
+    font-size: 0.85rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-10px);
+    transition: all 0.2s ease;
+  }
+
+  .toc.expanded .toc-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+  }
+
+  .toc-header {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+
+  .toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .toc-list li {
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+
+  .toc-list a {
+    color: var(--text-muted);
+    text-decoration: none;
+    display: block;
+    transition: color 0.15s ease;
+  }
+
+  .toc-list a:hover {
+    color: var(--text-primary);
+  }
+
+  .toc-list a.active {
+    color: var(--accent);
+  }
+
+  /* Nested lists for hierarchy */
+  .toc-list ul {
+    list-style: none;
+    padding-left: 0.75rem;
+    margin: 0;
+    margin-top: 0.35rem;
+  }
+
+  .toc-list ul li {
+    margin-bottom: 0.35rem;
+  }
+
+  .toc-list ul a {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .toc-list ul a:hover {
+    color: var(--text-primary);
+  }
+
+  .toc-list ul ul {
+    padding-left: 0.5rem;
+  }
+
+  .toc-list ul ul a {
+    font-size: 0.75rem;
+  }
+
+  /* Scrollbar styling */
+  .toc-content::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .toc-content::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+  }
+
+  .toc-content::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+  }
+</style>
+
+<script>
+  function initTOC() {
+    const toc = document.getElementById('toc');
+    const tocDashes = document.getElementById('toc-dashes');
+    const tocClose = document.getElementById('toc-close');
+    const tocList = document.getElementById('toc-list');
+    const prose = document.querySelector('.prose');
+
+    if (!toc || !tocDashes || !tocClose || !tocList || !prose) return;
+
+    // Skip if already initialized
+    if (toc.dataset.initialized === 'true') return;
+    toc.dataset.initialized = 'true';
+
+    // Get all headings from the prose content
+    const headings = Array.from(prose.querySelectorAll('h2, h3, h4'));
+
+    if (headings.length === 0) {
+      toc.style.display = 'none';
+      return;
+    }
+
+    // Create dash indicators with inline styles (Astro scoped CSS doesn't apply to dynamic elements)
+    tocDashes.innerHTML = '';
+    headings.forEach((heading, index) => {
+      const dash = document.createElement('div');
+      dash.className = 'toc-dash';
+      dash.dataset.index = index.toString();
+      // Apply styles inline since Astro scoped CSS won't apply to dynamic elements
+      dash.style.width = '12px';
+      dash.style.height = '2px';
+      dash.style.background = 'var(--text-muted)';
+      dash.style.borderRadius = '1px';
+      dash.style.transition = 'all 0.15s ease';
+      dash.style.cursor = 'pointer';
+      // Add hover effect
+      dash.onmouseenter = () => { if (!dash.classList.contains('active')) dash.style.background = 'var(--text-primary)'; };
+      dash.onmouseleave = () => { if (!dash.classList.contains('active')) dash.style.background = 'var(--text-muted)'; };
+      tocDashes.appendChild(dash);
+    });
+
+    // Click on dashes to expand
+    tocDashes.onclick = () => {
+      toc.classList.add('expanded');
+    };
+
+    // Close button
+    tocClose.onclick = () => {
+      toc.classList.remove('expanded');
+    };
+
+    // Clear existing items to prevent duplicates
+    tocList.innerHTML = '';
+
+    // Track seen IDs to prevent duplicates
+    const seenIds = new Set();
+
+    // Build hierarchical structure
+    let currentH2Li: HTMLLIElement | null = null;
+    let currentH2Ul: HTMLUListElement | null = null;
+    let currentH3Li: HTMLLIElement | null = null;
+    let currentH3Ul: HTMLUListElement | null = null;
+
+    headings.forEach((heading, index) => {
+      // Add ID to heading if it doesn't have one
+      if (!heading.id) {
+        heading.id = `heading-${index}`;
+      }
+
+      // Skip if we've already added this heading
+      if (seenIds.has(heading.id)) return;
+      seenIds.add(heading.id);
+
+      const level = heading.tagName.toLowerCase();
+      const li = document.createElement('li');
+      li.style.listStyle = 'none';
+      li.style.marginBottom = level === 'h2' ? '0.5rem' : '0.35rem';
+      li.style.lineHeight = '1.4';
+      const a = document.createElement('a');
+      a.href = `#${heading.id}`;
+      const text = heading.textContent || '';
+      a.textContent = text.length > 30 ? text.substring(0, 30) + '...' : text;
+      a.title = text;
+      a.dataset.index = index.toString();
+      // Apply inline styles for dynamic elements
+      a.style.color = 'var(--text-muted)';
+      a.style.textDecoration = 'none';
+      a.style.display = 'block';
+      a.style.transition = 'color 0.15s ease';
+      if (level === 'h3') a.style.fontSize = '0.8rem';
+      if (level === 'h4') a.style.fontSize = '0.75rem';
+      // Add hover effect
+      a.onmouseenter = () => { if (!a.classList.contains('active')) a.style.color = 'var(--text-primary)'; };
+      a.onmouseleave = () => { if (!a.classList.contains('active')) a.style.color = 'var(--text-muted)'; };
+      li.appendChild(a);
+
+      if (level === 'h2') {
+        // H2 goes to root level
+        tocList.appendChild(li);
+        currentH2Li = li;
+        currentH2Ul = null;
+        currentH3Li = null;
+        currentH3Ul = null;
+      } else if (level === 'h3') {
+        // H3 goes under current H2
+        if (currentH2Li) {
+          if (!currentH2Ul) {
+            currentH2Ul = document.createElement('ul');
+            currentH2Ul.style.listStyle = 'none';
+            currentH2Ul.style.paddingLeft = '0.75rem';
+            currentH2Ul.style.margin = '0';
+            currentH2Ul.style.marginTop = '0.35rem';
+            currentH2Li.appendChild(currentH2Ul);
+          }
+          currentH2Ul.appendChild(li);
+          currentH3Li = li;
+          currentH3Ul = null;
+        } else {
+          // No parent H2, add to root
+          tocList.appendChild(li);
+          currentH3Li = li;
+          currentH3Ul = null;
+        }
+      } else if (level === 'h4') {
+        // H4 goes under current H3
+        if (currentH3Li) {
+          if (!currentH3Ul) {
+            currentH3Ul = document.createElement('ul');
+            currentH3Ul.style.listStyle = 'none';
+            currentH3Ul.style.paddingLeft = '0.5rem';
+            currentH3Ul.style.margin = '0';
+            currentH3Ul.style.marginTop = '0.35rem';
+            currentH3Li.appendChild(currentH3Ul);
+          }
+          currentH3Ul.appendChild(li);
+        } else if (currentH2Li) {
+          // No parent H3, add under H2
+          if (!currentH2Ul) {
+            currentH2Ul = document.createElement('ul');
+            currentH2Ul.style.listStyle = 'none';
+            currentH2Ul.style.paddingLeft = '0.75rem';
+            currentH2Ul.style.margin = '0';
+            currentH2Ul.style.marginTop = '0.35rem';
+            currentH2Li.appendChild(currentH2Ul);
+          }
+          currentH2Ul.appendChild(li);
+        } else {
+          // No parent, add to root
+          tocList.appendChild(li);
+        }
+      }
+    });
+
+    // Highlight current section on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const id = entry.target.getAttribute('id');
+        const tocLink = tocList.querySelector(`a[href="#${id}"]`) as HTMLAnchorElement;
+        const dashIndex = tocLink?.dataset.index;
+
+        if (entry.isIntersecting) {
+          // Remove active from all links and dashes
+          tocList.querySelectorAll('a').forEach(a => {
+            a.classList.remove('active');
+            (a as HTMLElement).style.color = 'var(--text-muted)';
+          });
+          tocDashes.querySelectorAll('.toc-dash').forEach(d => {
+            d.classList.remove('active');
+            (d as HTMLElement).style.width = '12px';
+            (d as HTMLElement).style.background = 'var(--text-muted)';
+          });
+
+          // Add active to current
+          if (tocLink) {
+            tocLink.classList.add('active');
+            tocLink.style.color = 'var(--accent)';
+          }
+          if (dashIndex) {
+            const dash = tocDashes.querySelector(`.toc-dash[data-index="${dashIndex}"]`) as HTMLElement;
+            if (dash) {
+              dash.classList.add('active');
+              dash.style.width = '16px';
+              dash.style.background = 'var(--text-primary)';
+            }
+          }
+        }
+      });
+    }, {
+      rootMargin: '-20% 0% -70% 0%'
+    });
+
+    headings.forEach(heading => observer.observe(heading));
+  }
+
+  // Run on page load
+  document.addEventListener('DOMContentLoaded', initTOC);
+  // Also run immediately in case DOM is already loaded
+  if (document.readyState !== 'loading') {
+    initTOC();
+  }
+</script>

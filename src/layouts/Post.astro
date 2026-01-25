@@ -1,0 +1,108 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import Base from './Base.astro';
+import TagList from '../components/TagList.astro';
+import Comments from '../components/Comments.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import Recommended from '../components/Recommended.astro';
+import { formatDate } from '../utils/dates';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { title, date, updated, type, tags, source, sourceUrl, linkUrl, linkTitle, via, viaUrl } = post.data;
+const { Content } = await render(post);
+---
+
+<Base title={title} description={post.data.summary}>
+  <TableOfContents />
+  <div class="post-layout">
+    <div class="post-main">
+      <article class="post-full" data-pagefind-body>
+        <header>
+          <div class="post-meta">
+            <span class="post-type">{type}</span>
+            <time datetime={date.toISOString()}>{formatDate(date)}</time>
+            {updated && (
+              <span class="post-updated">
+                (updated <time datetime={updated.toISOString()}>{formatDate(updated)}</time>)
+              </span>
+            )}
+          </div>
+
+          {type === 'link' && linkUrl ? (
+            <>
+              <h1 class="blogmark-link">
+                <a href={linkUrl} target="_blank" rel="noopener">{linkTitle || title}</a>
+              </h1>
+              {via && (
+                <p class="blogmark-via">
+                  via {viaUrl ? <a href={viaUrl}>{via}</a> : via}
+                </p>
+              )}
+            </>
+          ) : (
+            <h1 class="page-title">{title}</h1>
+          )}
+
+          {type === 'quote' && source && (
+            <p class="quote-source">
+              — {sourceUrl ? <a href={sourceUrl}>{source}</a> : source}
+            </p>
+          )}
+        </header>
+
+        <div class="prose">
+          <Content />
+        </div>
+
+        <TagList tags={tags} />
+      </article>
+
+      <Comments />
+    </div>
+    <aside class="post-sidebar">
+      <Recommended />
+    </aside>
+  </div>
+</Base>
+
+<style>
+  .post-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: var(--spacing-xl);
+    align-items: start;
+  }
+
+  .post-main {
+    min-width: 0;
+  }
+
+  .post-sidebar {
+    position: sticky;
+    top: var(--spacing-lg);
+  }
+
+  .post-full {
+    padding: var(--spacing-lg) 0;
+  }
+
+  .post-updated {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  @media (max-width: 1024px) {
+    .post-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .post-sidebar {
+      position: static;
+      margin-top: var(--spacing-xl);
+    }
+  }
+</style>
