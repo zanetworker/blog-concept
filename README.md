@@ -4,7 +4,7 @@ A personal blog built with Astro 5.x featuring multiple content types, tag-based
 
 ## Features
 
-- **Multiple Content Types** - Entries (long-form posts), Links (blogmarks), Quotes, and Notes
+- **Multiple Content Types** - Entries (long-form posts), Links (blogmarks), and Highlights (quotes & notes)
 - **Tag System** - Tag-based organization with related tags sidebar (Simon Willison style)
 - **Full-Text Search** - Static search powered by Pagefind
 - **Comments** - GitHub Discussions integration via Giscus
@@ -59,8 +59,7 @@ scripts/
 │   ├── index.astro      # Homepage
 │   ├── entries/         # Entries listing
 │   ├── links/           # Links listing
-│   ├── quotes/          # Quotes listing
-│   ├── notes/           # Notes listing
+│   ├── highlights/      # Quotes & notes listing
 │   ├── tags/            # Tag pages
 │   ├── search.astro     # Search page
 │   ├── about.astro      # About page
@@ -243,7 +242,7 @@ links:
 ### Extracted Content
 
 Extracted quotes and notes automatically:
-- Appear on `/quotes/` and `/notes/` pages
+- Appear on the `/highlights/` page
 - Link back to their source post ("from: Post Title")
 - Inherit tags from the source post
 - Are tracked to avoid duplicates

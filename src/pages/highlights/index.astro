@@ -1,0 +1,36 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import QuoteCard from '../../components/QuoteCard.astro';
+import NoteCard from '../../components/NoteCard.astro';
+
+// Get both quotes and notes, sorted by date
+const allPosts = await getCollection('posts', ({ data }) => !data.draft);
+const highlights = allPosts
+  .filter(p => p.data.type === 'quote' || p.data.type === 'note')
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<Base title="Highlights">
+  <h1 class="page-title">Highlights</h1>
+  <p class="page-description">Quotes, notes, and insights extracted from posts.</p>
+  <div class="highlights-list">
+    {highlights.map(post => (
+      post.data.type === 'quote'
+        ? <QuoteCard post={post} />
+        : <NoteCard post={post} />
+    ))}
+  </div>
+</Base>
+
+<style>
+  .page-description {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .highlights-list {
+    display: flex;
+    flex-direction: column;
+  }
+</style>

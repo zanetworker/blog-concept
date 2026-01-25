@@ -2,7 +2,8 @@
 import { getAllPosts, getPostUrl } from '../utils/posts';
 
 const posts = await getAllPosts();
-const recentPosts = posts.slice(0, 5);
+// Only show entries (not quotes, notes, or links)
+const recentPosts = posts.filter(p => p.data.type === 'entry').slice(0, 5);
 ---
 
 <aside class="recommended">
