@@ -157,20 +157,21 @@ function cleanText(text) {
     .trim();
 }
 
-// Extract quotes with attribution from markdown body
+// Extract quotes from any blockquote in markdown body
 function extractQuotesFromBody(body, sourceFile) {
   const quotes = [];
 
-  // Pattern: blockquote (optionally with [!quote] marker) followed by attribution
-  // > [!quote] Quote text here
-  // — Author Name
-  // OR
-  // > Quote text here
-  // — Author Name
-  const quotePattern = /(?:^|\n)((?:>\s*(?:\[!quote\]\s*)?.+\n?)+)\n*(?:—|–|-{1,2})\s*([^\n\[]+?)(?:\n|$)/gm;
+  // Pattern 1: blockquote followed by attribution line (— Author)
+  const quoteWithAttrPattern = /(?:^|\n)((?:>\s*(?:\[!quote\]\s*)?.+\n?)+)\n*(?:—|–|-{1,2})\s*([^\n\[]+?)(?:\n|$)/gm;
 
+  // Pattern 2: any blockquote (without attribution)
+  const anyBlockquotePattern = /(?:^|\n)((?:>\s*.+\n?)+)/gm;
+
+  const processedTexts = new Set();
+
+  // First, extract quotes WITH attribution
   let match;
-  while ((match = quotePattern.exec(body)) !== null) {
+  while ((match = quoteWithAttrPattern.exec(body)) !== null) {
     const quoteLines = match[1].split('\n')
       .map(line => line.replace(/^>\s*/, '').replace(/\[!quote\]\s*/i, '').trim())
       .filter(line => line.length > 0);
@@ -178,20 +179,19 @@ function extractQuotesFromBody(body, sourceFile) {
     const quoteText = cleanText(quoteLines.join(' '));
     const attribution = cleanText(match[2]);
 
-    // Validate: reasonable quote length, clear human attribution
-    // Reject if attribution looks like a URL, ID, code, or footnote
+    // Validate attribution
     const isValidAttribution =
       attribution.length > 2 &&
       attribution.length < 60 &&
-      !attribution.match(/^http/i) &&           // Not a URL
-      !attribution.match(/^\d+$/) &&            // Not just numbers
-      !attribution.match(/^[a-f0-9]{6,}$/i) &&  // Not a hex ID
-      !attribution.match(/\)$/) &&              // Doesn't end with )
-      !attribution.match(/\]$/) &&              // Doesn't end with ]
-      !attribution.match(/^[^a-zA-Z]*$/) &&     // Must contain letters
-      attribution.match(/^[A-Z]/) &&            // Starts with capital letter
-      !attribution.match(/[<>{}|\\]/) &&        // No code/special chars
-      !attribution.match(/\.(com|org|net|io)/i); // Not a domain
+      !attribution.match(/^http/i) &&
+      !attribution.match(/^\d+$/) &&
+      !attribution.match(/^[a-f0-9]{6,}$/i) &&
+      !attribution.match(/\)$/) &&
+      !attribution.match(/\]$/) &&
+      !attribution.match(/^[^a-zA-Z]*$/) &&
+      attribution.match(/^[A-Z]/) &&
+      !attribution.match(/[<>{}|\\]/) &&
+      !attribution.match(/\.(com|org|net|io)/i);
 
     if (quoteText.length > 20 && isValidAttribution) {
       quotes.push({
@@ -199,7 +199,29 @@ function extractQuotesFromBody(body, sourceFile) {
         source: attribution,
         sourceFile
       });
+      processedTexts.add(quoteText);
     }
+  }
+
+  // Then, extract any remaining blockquotes (without attribution)
+  while ((match = anyBlockquotePattern.exec(body)) !== null) {
+    const quoteLines = match[1].split('\n')
+      .map(line => line.replace(/^>\s*/, '').replace(/\[!quote\]\s*/i, '').trim())
+      .filter(line => line.length > 0);
+
+    const quoteText = cleanText(quoteLines.join(' '));
+
+    // Skip if already processed with attribution, too short, or looks like a note/tip
+    if (processedTexts.has(quoteText)) continue;
+    if (quoteText.length < 20) continue;
+    if (quoteText.match(/^\[!(note|tip|warning|info|til)\]/i)) continue;
+
+    quotes.push({
+      text: quoteText,
+      source: '', // No attribution
+      sourceFile
+    });
+    processedTexts.add(quoteText);
   }
 
   return quotes;
@@ -282,7 +304,7 @@ function slugify(text) {
 }
 
 // Create quote file
-function createQuoteFile(quote, date, tags) {
+function createQuoteFile(quote, date, tags, sourceTitle) {
   const slug = slugify(quote.text.slice(0, 40));
   const filename = `${slug}.md`;
   const filepath = path.join(QUOTES_DIR, filename);
@@ -292,14 +314,17 @@ function createQuoteFile(quote, date, tags) {
     return null;
   }
 
+  const title = quote.source || 'Quote';
+  const sourceLine = quote.source ? `\nsource: "${quote.source}"` : '';
   const sourceUrlLine = quote.sourceUrl ? `\nsourceUrl: "${quote.sourceUrl}"` : '';
+  const sourceEntryLine = `\nsourceEntry: "${quote.sourceFile}"`;
+  const sourceEntryTitleLine = sourceTitle ? `\nsourceEntryTitle: "${sourceTitle.replace(/"/g, '\\"')}"` : '';
 
   const content = `---
-title: "${quote.source}"
+title: "${title}"
 date: ${date}
 tags: ${JSON.stringify(tags.length ? tags : ['wisdom'])}
-type: quote
-source: "${quote.source}"${sourceUrlLine}
+type: quote${sourceLine}${sourceUrlLine}${sourceEntryLine}${sourceEntryTitleLine}
 ---
 
 > ${quote.text}
@@ -345,7 +370,7 @@ _Extracted from: ${link.sourceFile}_
 }
 
 // Create note file
-function createNoteFile(note, date, tags) {
+function createNoteFile(note, date, tags, sourceTitle) {
   const slug = slugify(note.text.slice(0, 40));
   const filename = `${slug}.md`;
   const filepath = path.join(NOTES_DIR, filename);
@@ -357,12 +382,14 @@ function createNoteFile(note, date, tags) {
 
   const titlePrefix = note.type === 'til' ? 'TIL: ' : '';
   const noteTags = note.type === 'til' ? ['til', ...tags] : tags;
+  const sourceEntryLine = `\nsourceEntry: "${note.sourceFile}"`;
+  const sourceEntryTitleLine = sourceTitle ? `\nsourceEntryTitle: "${sourceTitle.replace(/"/g, '\\"')}"` : '';
 
   const content = `---
 title: "${titlePrefix}${note.text.slice(0, 50).replace(/"/g, '\\"')}${note.text.length > 50 ? '...' : ''}"
 date: ${date}
 tags: ${JSON.stringify(noteTags.length ? noteTags : ['note'])}
-type: note
+type: note${sourceEntryLine}${sourceEntryTitleLine}
 ---
 
 ${note.text}
@@ -395,6 +422,7 @@ async function extract() {
 
     const date = frontmatter.date || new Date().toISOString().split('T')[0];
     const tags = frontmatter.tags || [];
+    const entryTitle = frontmatter.title || '';
 
     // === QUOTES ===
     const bodyQuotes = extractQuotesFromBody(body, entry);
@@ -405,8 +433,8 @@ async function extract() {
       const quoteId = `${entry}:${quote.text.slice(0, 50)}`;
       if (!log.quotes.includes(quoteId)) {
         console.log(`📜 Quote in ${entry}:`);
-        console.log(`   "${quote.text.slice(0, 50)}..." — ${quote.source}`);
-        const created = createQuoteFile(quote, date, tags);
+        console.log(`   "${quote.text.slice(0, 50)}..." — ${quote.source || '(no attribution)'}`);
+        const created = createQuoteFile(quote, date, tags, entryTitle);
         if (created) {
           log.quotes.push(quoteId);
           totalQuotes++;
@@ -421,7 +449,7 @@ async function extract() {
       if (!log.notes.includes(noteId)) {
         console.log(`📝 ${note.type.toUpperCase()} in ${entry}:`);
         console.log(`   "${note.text.slice(0, 60)}..."`);
-        const created = createNoteFile(note, date, tags);
+        const created = createNoteFile(note, date, tags, entryTitle);
         if (created) {
           log.notes.push(noteId);
           totalNotes++;

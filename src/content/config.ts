@@ -21,6 +21,9 @@ const posts = defineCollection({
     // Quote-specific
     source: z.string().optional(),
     sourceUrl: z.string().url().optional(),
+    // Source entry reference (for extracted content)
+    sourceEntry: z.string().optional(),
+    sourceEntryTitle: z.string().optional(),
   }),
 });
 

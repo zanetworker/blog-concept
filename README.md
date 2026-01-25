@@ -34,12 +34,16 @@ src/
 │   ├── Header.astro     # Site navigation
 │   ├── Footer.astro     # Footer with theme toggle
 │   ├── PostCard.astro   # Post preview card
+│   ├── QuoteCard.astro  # Quote display card
+│   ├── NoteCard.astro   # Note display card
 │   ├── TableOfContents.astro  # Collapsible TOC
 │   ├── TagList.astro    # Tag display
 │   ├── RelatedTags.astro      # Related tags sidebar
 │   ├── Search.astro     # Pagefind search UI
 │   ├── Comments.astro   # Giscus integration
 │   └── Recommended.astro      # Recommended posts sidebar
+scripts/
+└── extract-content.js   # Auto-extract quotes, notes, links from entries
 ├── content/
 │   └── config.ts        # Content collection schema
 ├── content-data/        # Markdown content
@@ -86,8 +90,10 @@ All content types use a unified schema with type-specific fields:
   linkTitle?: string;         // For links
   via?: string;               // For links (attribution)
   viaUrl?: string;            // For links
-  source?: string;            // For quotes
-  sourceUrl?: string;         // For quotes
+  source?: string;            // For quotes (author)
+  sourceUrl?: string;         // For quotes (author link)
+  sourceEntry?: string;       // For extracted content (source file)
+  sourceEntryTitle?: string;  // For extracted content (source post title)
 }
 ```
 
@@ -200,6 +206,59 @@ type: note
 
 Short-form content here...
 ```
+
+## Content Extraction
+
+The blog includes an automatic content extraction system that detects quotes and notes from your blog entries and creates separate posts for them.
+
+### How It Works
+
+When you run `npm run build` (or `npm run extract`), the extraction script scans all entries for:
+
+**Quotes** - Any blockquote in your content:
+```markdown
+> The best way to predict the future is to invent it.
+— Alan Kay
+```
+
+Quotes with an attribution line (— Author) will show the author. Quotes without attribution are still extracted and link back to the source post.
+
+**Notes** - Content marked with `[!note]` or `[!til]`:
+```markdown
+[!note] The pattern of "prompt chaining" breaks complex tasks into smaller steps.
+
+[!til] You can use asyncio.gather() to run multiple API calls concurrently.
+```
+
+**Links** - Defined in frontmatter:
+```markdown
+---
+links:
+  - url: "https://example.com"
+    title: "Article Title"
+    via: "@author"
+---
+```
+
+### Extracted Content
+
+Extracted quotes and notes automatically:
+- Appear on `/quotes/` and `/notes/` pages
+- Link back to their source post ("from: Post Title")
+- Inherit tags from the source post
+- Are tracked to avoid duplicates
+
+### Running Extraction
+
+```bash
+# Run extraction manually
+npm run extract
+
+# Extraction runs automatically before build
+npm run build
+```
+
+The extraction state is tracked in `.extracted-content.json` (gitignored).
 
 ## Configuration
 

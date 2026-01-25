@@ -1,5 +1,5 @@
 ---
-import { render, type CollectionEntry } from 'astro:content';
+import { render, getCollection, type CollectionEntry } from 'astro:content';
 import { formatDate } from '../utils/dates';
 import { getPostUrl } from '../utils/posts';
 import TagList from './TagList.astro';
@@ -9,11 +9,32 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const { title, date, tags } = post.data;
+const { title, date, tags, sourceEntry, sourceEntryTitle } = post.data;
 const url = getPostUrl(post);
 
 // Get the rendered content
 const { Content } = await render(post);
+
+// Look up source entry to get correct URL
+let sourceLinkUrl = url;
+let sourceLinkLabel = sourceEntryTitle || 'source';
+
+if (sourceEntry) {
+  const allPosts = await getCollection('posts');
+  // sourceEntry is like "building-ai-apps.md", post.id is like "entries/building-ai-apps"
+  const sourceSlug = sourceEntry.replace('.md', '');
+  const sourcePost = allPosts.find(p =>
+    p.id === `entries/${sourceSlug}` ||
+    p.id.endsWith(`/${sourceSlug}`) ||
+    p.id === sourceSlug
+  );
+  if (sourcePost) {
+    sourceLinkUrl = getPostUrl(sourcePost);
+    if (!sourceEntryTitle) {
+      sourceLinkLabel = sourcePost.data.title;
+    }
+  }
+}
 ---
 
 <article class="note-card">
@@ -27,16 +48,14 @@ const { Content } = await render(post);
 
   <div class="note-footer">
     <TagList tags={tags} />
-    <a href={url} class="note-permalink">permalink</a>
+    <a href={sourceLinkUrl} class="note-source-link">{sourceLinkLabel}</a>
   </div>
 </article>
 
 <style>
   .note-card {
     padding: var(--spacing-lg);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    border-left: 3px solid var(--accent);
     margin-bottom: var(--spacing-md);
   }
 
@@ -76,12 +95,12 @@ const { Content } = await render(post);
     border-top: 1px solid var(--border);
   }
 
-  .note-permalink {
+  .note-source-link {
     font-size: 0.75rem;
     color: var(--text-muted);
   }
 
-  .note-permalink:hover {
+  .note-source-link:hover {
     color: var(--accent);
   }
 </style>
