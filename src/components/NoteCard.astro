@@ -1,0 +1,87 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import { formatDate } from '../utils/dates';
+import { getPostUrl } from '../utils/posts';
+import TagList from './TagList.astro';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { title, date, tags } = post.data;
+const url = getPostUrl(post);
+
+// Get the rendered content
+const { Content } = await render(post);
+---
+
+<article class="note-card">
+  <div class="note-meta">
+    <time datetime={date.toISOString()}>{formatDate(date)}</time>
+  </div>
+
+  <div class="note-content">
+    <Content />
+  </div>
+
+  <div class="note-footer">
+    <TagList tags={tags} />
+    <a href={url} class="note-permalink">permalink</a>
+  </div>
+</article>
+
+<style>
+  .note-card {
+    padding: var(--spacing-lg);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .note-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .note-content {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+
+  .note-content :global(p) {
+    margin: 0;
+  }
+
+  .note-content :global(p:last-child) {
+    display: none; /* Hide the "Extracted from" line */
+  }
+
+  .note-content :global(code) {
+    background: var(--bg-tertiary);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+
+  .note-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--border);
+  }
+
+  .note-permalink {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .note-permalink:hover {
+    color: var(--accent);
+  }
+</style>

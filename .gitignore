@@ -26,8 +26,8 @@ public/pagefind/
 # Playwright MCP (local dev tooling)
 .playwright-mcp/
 
-# Scripts - keep locally but don't commit
-scripts/
+# Extraction log (tracks what's been extracted to avoid duplicates)
+.extracted-content.json
 
 # Debug logs
 npm-debug.log*

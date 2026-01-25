@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import PostCard from '../../components/PostCard.astro';
+import NoteCard from '../../components/NoteCard.astro';
 import { getPostsByType } from '../../utils/posts';
 
 const posts = await getPostsByType('note');
@@ -8,8 +8,21 @@ const posts = await getPostsByType('note');
 
 <Base title="Notes">
   <h1 class="page-title">Notes</h1>
-  <p>Short-form posts and quick thoughts.</p>
-  <div class="posts-list">
-    {posts.map(post => <PostCard post={post} />)}
+  <p class="page-description">Short-form posts and quick thoughts.</p>
+  <div class="notes-list">
+    {posts.map(post => <NoteCard post={post} />)}
   </div>
 </Base>
+
+<style>
+  .page-description {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+</style>

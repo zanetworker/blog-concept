@@ -3,6 +3,8 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
+    "extract": "node scripts/extract-content.js",
+    "prebuild": "npm run extract",
     "build": "astro build",
     "preview": "astro preview"
   },

@@ -1,0 +1,109 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import { formatDate } from '../utils/dates';
+import { getPostUrl } from '../utils/posts';
+import TagList from './TagList.astro';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { title, date, tags, source, sourceUrl } = post.data;
+const url = getPostUrl(post);
+
+// Get the rendered content (contains the blockquote)
+const { Content } = await render(post);
+---
+
+<article class="quote-card">
+  <div class="quote-content">
+    <Content />
+  </div>
+
+  <div class="quote-attribution">
+    — {sourceUrl ? (
+      <a href={sourceUrl} target="_blank" rel="noopener">{source}</a>
+    ) : (
+      <span>{source}</span>
+    )}
+  </div>
+
+  <div class="quote-footer">
+    <time datetime={date.toISOString()}>{formatDate(date)}</time>
+    <TagList tags={tags} />
+    <a href={url} class="quote-permalink">permalink</a>
+  </div>
+</article>
+
+<style>
+  .quote-card {
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    border-left: 3px solid var(--accent);
+    background: var(--bg-secondary);
+    border-radius: 0 8px 8px 0;
+  }
+
+  .quote-content {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+    font-style: italic;
+  }
+
+  .quote-content :global(blockquote) {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-size: inherit;
+  }
+
+  .quote-content :global(blockquote p) {
+    margin: 0;
+  }
+
+  .quote-content :global(p:last-child) {
+    display: none; /* Hide the "Extracted from" line */
+  }
+
+  .quote-content :global(em) {
+    font-style: normal; /* Already italic from parent */
+  }
+
+  .quote-attribution {
+    margin-top: var(--spacing-md);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-style: normal;
+  }
+
+  .quote-attribution a {
+    color: var(--accent);
+  }
+
+  .quote-attribution a:hover {
+    text-decoration: underline;
+  }
+
+  .quote-footer {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .quote-permalink {
+    margin-left: auto;
+    color: var(--text-muted);
+  }
+
+  .quote-permalink:hover {
+    color: var(--accent);
+  }
+</style>

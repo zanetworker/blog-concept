@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import PostCard from '../../components/PostCard.astro';
+import QuoteCard from '../../components/QuoteCard.astro';
 import { getPostsByType } from '../../utils/posts';
 
 const posts = await getPostsByType('quote');
@@ -8,8 +8,21 @@ const posts = await getPostsByType('quote');
 
 <Base title="Quotes">
   <h1 class="page-title">Quotes</h1>
-  <p>Quotations that inspire or provoke thought.</p>
-  <div class="posts-list">
-    {posts.map(post => <PostCard post={post} />)}
+  <p class="page-description">Quotations that inspire or provoke thought.</p>
+  <div class="quotes-list">
+    {posts.map(post => <QuoteCard post={post} />)}
   </div>
 </Base>
+
+<style>
+  .page-description {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .quotes-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+</style>
