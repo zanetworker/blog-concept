@@ -1,0 +1,31 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Personal blog of Adel Zaalouk' } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="generator" content={Astro.generator} />
+
+<link rel="canonical" href={canonicalURL} />
+<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+<title>{title} | adelzaalouk</title>
+<meta name="description" content={description} />
+
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:type" content="website" />
+
+<link rel="alternate" type="application/atom+xml" title="adelzaalouk RSS" href="/atom.xml" />
+
+<!-- Google Fonts for Source Serif Pro -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />

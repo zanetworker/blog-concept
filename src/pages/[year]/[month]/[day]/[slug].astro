@@ -1,0 +1,25 @@
+---
+import Post from '../../../../layouts/Post.astro';
+import { getAllPosts } from '../../../../utils/posts';
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+
+  return posts.map(post => {
+    const date = post.data.date;
+    const year = date.getFullYear().toString();
+    const month = date.toLocaleString('en-US', { month: 'short' });
+    const day = date.getDate().toString();
+    const slug = post.id.split('/').pop()?.replace('.md', '') || post.id;
+
+    return {
+      params: { year, month, day, slug },
+      props: { post },
+    };
+  });
+}
+
+const { post } = Astro.props;
+---
+
+<Post post={post} />

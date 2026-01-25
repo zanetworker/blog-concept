@@ -1,0 +1,158 @@
+---
+---
+
+<div class="search-bar">
+  <input
+    type="search"
+    class="search-bar-input"
+    placeholder="Search posts..."
+    id="main-search-input"
+    aria-label="Search posts"
+  />
+  <div id="main-search-results" class="search-bar-results"></div>
+</div>
+
+<script is:inline>
+  (async function initMainSearch() {
+    const input = document.getElementById('main-search-input');
+    const results = document.getElementById('main-search-results');
+    if (!input || !results) return;
+
+    // Close results when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-bar')) {
+        results.classList.remove('active');
+      }
+    });
+
+    // Show results on focus if there's content
+    input.addEventListener('focus', () => {
+      if (results.innerHTML && input.value) {
+        results.classList.add('active');
+      }
+    });
+
+    try {
+      const pagefind = await import('/pagefind/pagefind.js');
+      await pagefind.init();
+
+      input.addEventListener('input', async (e) => {
+        const query = e.target.value;
+        if (!query) {
+          results.innerHTML = '';
+          results.classList.remove('active');
+          return;
+        }
+
+        const search = await pagefind.search(query);
+        const data = await Promise.all(search.results.slice(0, 8).map((r) => r.data()));
+
+        if (data.length === 0) {
+          results.innerHTML = '<div class="search-bar-empty">No results found</div>';
+        } else {
+          results.innerHTML = data.map((item) => `
+            <a href="${item.url}" class="search-bar-result">
+              <span class="search-bar-result-title">${item.meta?.title || 'Untitled'}</span>
+              <span class="search-bar-result-excerpt">${item.excerpt || ''}</span>
+            </a>
+          `).join('');
+        }
+        results.classList.add('active');
+      });
+    } catch (e) {
+      // Pagefind not available in dev mode
+      input.addEventListener('focus', () => {
+        results.innerHTML = '<div class="search-bar-empty">Search available after build</div>';
+        results.classList.add('active');
+      });
+    }
+  })();
+</script>
+
+<style>
+  .search-bar {
+    position: relative;
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .search-bar-input {
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 1rem;
+  }
+
+  .search-bar-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .search-bar-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .search-bar-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-top: var(--spacing-xs);
+    display: none;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .search-bar-results.active {
+    display: block;
+  }
+
+  .search-bar-result {
+    display: block;
+    padding: var(--spacing-md);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search-bar-result:last-child {
+    border-bottom: none;
+  }
+
+  .search-bar-result:hover {
+    background: var(--bg-tertiary);
+  }
+
+  .search-bar-result-title {
+    display: block;
+    font-weight: 500;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .search-bar-result-excerpt {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .search-bar-result mark {
+    background: var(--accent-muted);
+    color: var(--text-primary);
+  }
+
+  .search-bar-empty {
+    padding: var(--spacing-md);
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+  }
+</style>

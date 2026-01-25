@@ -1,0 +1,19 @@
+---
+interface Props {
+  currentTag: string;
+  relatedTags: Array<{ tag: string; count: number }>;
+}
+
+const { currentTag, relatedTags } = Astro.props;
+---
+
+{relatedTags.length > 0 && (
+  <aside class="related-tags">
+    <h3>Related to {currentTag}</h3>
+    <div class="related-tags-list">
+      {relatedTags.map(({ tag, count }) => (
+        <a href={`/tags/${tag}/`} class="tag">{tag} ({count})</a>
+      ))}
+    </div>
+  </aside>
+)}

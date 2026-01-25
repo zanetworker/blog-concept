@@ -1,0 +1,150 @@
+---
+---
+
+<div class="header-search">
+  <input
+    type="search"
+    class="header-search-input"
+    placeholder="Search..."
+    id="header-search-input"
+    aria-label="Search posts"
+  />
+  <div id="header-search-results" class="header-search-results"></div>
+</div>
+
+<script is:inline>
+  (async function initHeaderSearch() {
+    const input = document.getElementById('header-search-input');
+    const results = document.getElementById('header-search-results');
+    if (!input || !results) return;
+
+    // Close results when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.header-search')) {
+        results.classList.remove('active');
+      }
+    });
+
+    // Show results on focus if there's content
+    input.addEventListener('focus', () => {
+      if (results.innerHTML && input.value) {
+        results.classList.add('active');
+      }
+    });
+
+    try {
+      const pagefind = await import('/pagefind/pagefind.js');
+      await pagefind.init();
+
+      input.addEventListener('input', async (e) => {
+        const query = e.target.value;
+        if (!query) {
+          results.innerHTML = '';
+          results.classList.remove('active');
+          return;
+        }
+
+        const search = await pagefind.search(query);
+        const data = await Promise.all(search.results.slice(0, 5).map((r) => r.data()));
+
+        if (data.length === 0) {
+          results.innerHTML = '<div class="header-search-empty">No results found</div>';
+        } else {
+          results.innerHTML = data.map((item) => `
+            <a href="${item.url}" class="header-search-result">
+              <span class="header-search-title">${item.meta?.title || 'Untitled'}</span>
+            </a>
+          `).join('');
+        }
+        results.classList.add('active');
+      });
+    } catch (e) {
+      // Pagefind not available in dev mode
+      input.addEventListener('focus', () => {
+        results.innerHTML = '<div class="header-search-empty">Search available after build</div>';
+        results.classList.add('active');
+      });
+    }
+  })();
+</script>
+
+<style>
+  .header-search {
+    position: relative;
+  }
+
+  .header-search-input {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.875rem;
+    width: 200px;
+  }
+
+  .header-search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .header-search-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .header-search-results {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-top: var(--spacing-xs);
+    display: none;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .header-search-results.active {
+    display: block;
+  }
+
+  .header-search-result {
+    display: block;
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-search-result:last-child {
+    border-bottom: none;
+  }
+
+  .header-search-result:hover {
+    background: var(--bg-tertiary);
+  }
+
+  .header-search-title {
+    font-size: 0.875rem;
+  }
+
+  .header-search-empty {
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    font-style: italic;
+  }
+
+  @media (max-width: 768px) {
+    .header-search-input {
+      width: 150px;
+    }
+
+    .header-search-results {
+      width: 250px;
+    }
+  }
+</style>

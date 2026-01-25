@@ -1,0 +1,107 @@
+---
+import Listing from '../layouts/Listing.astro';
+import PostCard from '../components/PostCard.astro';
+import PostCardFeatured from '../components/PostCardFeatured.astro';
+import PostCardGrid from '../components/PostCardGrid.astro';
+import ViewToggle from '../components/ViewToggle.astro';
+import { getAllPosts } from '../utils/posts';
+
+const posts = await getAllPosts();
+const featuredPost = posts[0];
+const gridPosts = posts.slice(1, 7);
+const remainingPosts = posts.slice(7);
+---
+
+<Listing title="Home">
+  <div class="page-header">
+    <h1 class="page-title">Recent Posts</h1>
+    <ViewToggle />
+  </div>
+
+  <!-- Magazine View -->
+  <div class="view-magazine">
+    <PostCardFeatured post={featuredPost} />
+
+    <div class="posts-grid">
+      {gridPosts.map(post => <PostCardGrid post={post} />)}
+    </div>
+
+    {remainingPosts.length > 0 && (
+      <div class="posts-list-section">
+        <h2 class="section-title">More Posts</h2>
+        <div class="posts-list">
+          {remainingPosts.map(post => <PostCard post={post} />)}
+        </div>
+      </div>
+    )}
+  </div>
+
+  <!-- List View -->
+  <div class="view-list">
+    <div class="posts-list">
+      {posts.map(post => <PostCard post={post} />)}
+    </div>
+  </div>
+</Listing>
+
+<style>
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .page-header .page-title {
+    margin-bottom: 0;
+  }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  @media (max-width: 1200px) {
+    .posts-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .posts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .posts-list-section {
+    margin-top: var(--spacing-xl);
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* View switching */
+  .view-magazine,
+  .view-list {
+    display: none;
+  }
+
+  :global(body[data-view="magazine"]) .view-magazine {
+    display: block;
+  }
+
+  :global(body[data-view="list"]) .view-list {
+    display: block;
+  }
+
+  /* Default to magazine if no data-view set */
+  :global(body:not([data-view])) .view-magazine {
+    display: block;
+  }
+</style>

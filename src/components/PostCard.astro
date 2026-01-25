@@ -1,0 +1,41 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../utils/dates';
+import { getPostUrl } from '../utils/posts';
+import TagList from './TagList.astro';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { title, date, type, tags, summary, linkUrl, linkTitle, source, sourceUrl } = post.data;
+const url = getPostUrl(post);
+---
+
+<article class="post">
+  <div class="post-meta">
+    <span class="post-type">{type}</span>
+    <time datetime={date.toISOString()}>{formatDate(date)}</time>
+  </div>
+
+  {type === 'link' && linkUrl ? (
+    <h2 class="blogmark-link">
+      <a href={linkUrl} target="_blank" rel="noopener">{linkTitle || title}</a>
+    </h2>
+  ) : (
+    <h2 class="post-title">
+      <a href={url}>{title}</a>
+    </h2>
+  )}
+
+  {type === 'quote' && (
+    <p class="quote-source">
+      — {sourceUrl ? <a href={sourceUrl}>{source}</a> : source}
+    </p>
+  )}
+
+  {summary && <p class="post-summary">{summary}</p>}
+
+  <TagList tags={tags} />
+</article>

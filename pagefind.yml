@@ -1,0 +1,6 @@
+site: dist
+glob: "**/*.html"
+exclude_selectors:
+  - "nav"
+  - "footer"
+  - ".giscus"

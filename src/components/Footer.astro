@@ -1,0 +1,55 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-content">
+      <p>&copy; {year} Adel Zaalouk. All rights reserved.</p>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <span class="theme-toggle-dark">Light</span>
+        <span class="theme-toggle-light">Dark</span>
+      </button>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function initTheme() {
+    const toggle = document.getElementById('theme-toggle');
+    const darkSpan = toggle?.querySelector('.theme-toggle-dark') as HTMLElement;
+    const lightSpan = toggle?.querySelector('.theme-toggle-light') as HTMLElement;
+
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+
+    document.documentElement.setAttribute('data-theme', theme);
+    updateToggleText(theme);
+
+    toggle?.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateToggleText(next);
+    });
+
+    function updateToggleText(theme: string) {
+      if (darkSpan && lightSpan) {
+        darkSpan.style.display = theme === 'dark' ? 'inline' : 'none';
+        lightSpan.style.display = theme === 'light' ? 'inline' : 'none';
+      }
+    }
+  }
+
+  initTheme();
+  document.addEventListener('astro:after-swap', initTheme);
+</script>
+
+<style>
+  .theme-toggle-light,
+  .theme-toggle-dark {
+    display: none;
+  }
+</style>

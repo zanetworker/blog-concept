@@ -1,0 +1,61 @@
+---
+import { getAllPosts, getPostUrl } from '../utils/posts';
+
+const posts = await getAllPosts();
+const recentPosts = posts.slice(0, 5);
+---
+
+<aside class="recommended">
+  <h3>Recommended</h3>
+  <ul class="recommended-list">
+    {recentPosts.map(post => (
+      <li>
+        <a href={getPostUrl(post)}>{post.data.title}</a>
+      </li>
+    ))}
+  </ul>
+</aside>
+
+<style>
+  .recommended {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: var(--spacing-md);
+  }
+
+  .recommended h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .recommended-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .recommended-list li {
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .recommended-list li:last-child {
+    border-bottom: none;
+  }
+
+  .recommended-list a {
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    display: block;
+  }
+
+  .recommended-list a:hover {
+    color: var(--accent);
+  }
+</style>

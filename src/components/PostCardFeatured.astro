@@ -1,0 +1,106 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../utils/dates';
+import { getPostUrl } from '../utils/posts';
+import TagList from './TagList.astro';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { title, date, type, tags, summary, cover } = post.data;
+const url = getPostUrl(post);
+---
+
+<article class:list={["post-featured", { "has-cover": !!cover }]}>
+  {cover && (
+    <a href={url} class="post-featured-image">
+      <img src={cover} alt={title} loading="lazy" />
+    </a>
+  )}
+  <div class="post-featured-content">
+    <div class="post-meta">
+      <span class="post-type">{type}</span>
+      <time datetime={date.toISOString()}>{formatDate(date)}</time>
+    </div>
+    <h2 class="post-featured-title">
+      <a href={url}>{title}</a>
+    </h2>
+    {summary && <p class="post-featured-summary">{summary}</p>}
+    <TagList tags={tags} />
+  </div>
+</article>
+
+<style>
+  .post-featured {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .post-featured:not(.has-cover) {
+    padding: var(--spacing-xl);
+  }
+
+  .post-featured.has-cover {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .post-featured-image {
+    display: block;
+    overflow: hidden;
+  }
+
+  .post-featured-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .post-featured-image:hover img {
+    transform: scale(1.02);
+  }
+
+  .post-featured.has-cover .post-featured-content {
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .post-featured-title {
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-md);
+    line-height: 1.3;
+  }
+
+  .post-featured-title a {
+    color: var(--text-primary);
+  }
+
+  .post-featured-title a:hover {
+    color: var(--accent);
+  }
+
+  .post-featured-summary {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 768px) {
+    .post-featured.has-cover {
+      grid-template-columns: 1fr;
+    }
+
+    .post-featured-image {
+      max-height: 250px;
+    }
+  }
+</style>

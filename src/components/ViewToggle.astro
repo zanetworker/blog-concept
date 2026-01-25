@@ -1,0 +1,78 @@
+---
+---
+
+<div class="view-toggle">
+  <button class="view-toggle-btn" data-view="magazine" aria-label="Magazine view">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="18" height="8" rx="1"/>
+      <rect x="3" y="14" width="8" height="7" rx="1"/>
+      <rect x="13" y="14" width="8" height="7" rx="1"/>
+    </svg>
+  </button>
+  <button class="view-toggle-btn" data-view="list" aria-label="List view">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+</div>
+
+<script is:inline>
+  (function initViewToggle() {
+    const buttons = document.querySelectorAll('.view-toggle-btn');
+    const savedView = localStorage.getItem('blog-view') || 'magazine';
+
+    function setView(view) {
+      localStorage.setItem('blog-view', view);
+      document.body.setAttribute('data-view', view);
+
+      buttons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+      });
+    }
+
+    // Set initial view
+    setView(savedView);
+
+    // Handle clicks
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        setView(btn.dataset.view);
+      });
+    });
+  })();
+</script>
+
+<style>
+  .view-toggle {
+    display: flex;
+    gap: var(--spacing-xs);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+  }
+
+  .view-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: var(--spacing-xs);
+    transition: all 0.15s ease;
+  }
+
+  .view-toggle-btn:hover {
+    color: var(--text-secondary);
+  }
+
+  .view-toggle-btn.active {
+    background: var(--bg-tertiary);
+    color: var(--accent);
+  }
+</style>

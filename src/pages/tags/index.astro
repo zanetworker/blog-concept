@@ -1,0 +1,31 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getAllPosts } from '../../utils/posts';
+import { getAllTags } from '../../utils/tags';
+
+const posts = await getAllPosts();
+const tagsMap = getAllTags(posts);
+const tags = [...tagsMap.entries()].sort((a, b) => b[1] - a[1]);
+---
+
+<Base title="Tags">
+  <h1 class="page-title">Tags</h1>
+  <div class="all-tags">
+    {tags.map(([tag, count]) => (
+      <a href={`/tags/${tag}/`} class="tag">{tag} ({count})</a>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .all-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+
+  .all-tags .tag {
+    font-size: 0.875rem;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+</style>

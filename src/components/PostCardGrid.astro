@@ -1,0 +1,98 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../utils/dates';
+import { getPostUrl } from '../utils/posts';
+import TagList from './TagList.astro';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const { title, date, type, summary, cover, tags } = post.data;
+const url = getPostUrl(post);
+---
+
+<article class:list={["post-grid-card", { "has-cover": !!cover }]}>
+  {cover && (
+    <a href={url} class="post-grid-image">
+      <img src={cover} alt={title} loading="lazy" />
+    </a>
+  )}
+  <div class="post-grid-content">
+    <div class="post-meta">
+      <span class="post-type">{type}</span>
+      <time datetime={date.toISOString()}>{formatDate(date)}</time>
+    </div>
+    <h3 class="post-grid-title">
+      <a href={url}>{title}</a>
+    </h3>
+    {summary && <p class="post-grid-summary">{summary}</p>}
+    <TagList tags={tags} />
+  </div>
+</article>
+
+<style>
+  .post-grid-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.15s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .post-grid-card:not(.has-cover) {
+    padding: var(--spacing-lg);
+  }
+
+  .post-grid-card:hover {
+    border-color: var(--border-hover);
+  }
+
+  .post-grid-image {
+    display: block;
+    height: 160px;
+    overflow: hidden;
+  }
+
+  .post-grid-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .post-grid-image:hover img {
+    transform: scale(1.05);
+  }
+
+  .post-grid-card.has-cover .post-grid-content {
+    padding: var(--spacing-md);
+  }
+
+  .post-grid-title {
+    font-size: 1.1rem;
+    margin-bottom: var(--spacing-sm);
+    line-height: 1.4;
+  }
+
+  .post-grid-title a {
+    color: var(--text-primary);
+  }
+
+  .post-grid-title a:hover {
+    color: var(--accent);
+  }
+
+  .post-grid-summary {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

@@ -1,0 +1,15 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPostsByType } from '../../utils/posts';
+
+const posts = await getPostsByType('note');
+---
+
+<Base title="Notes">
+  <h1 class="page-title">Notes</h1>
+  <p>Short-form posts and quick thoughts.</p>
+  <div class="posts-list">
+    {posts.map(post => <PostCard post={post} />)}
+  </div>
+</Base>

@@ -1,0 +1,41 @@
+---
+const navItems = [
+  { href: '/', label: 'Home' },
+  { href: '/about/', label: 'About' },
+  { href: '/entries/', label: 'Entries' },
+  { href: '/links/', label: 'Links' },
+  { href: '/quotes/', label: 'Quotes' },
+  { href: '/notes/', label: 'Notes' },
+  { href: '/tags/', label: 'Tags' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="site-header">
+  <div class="container">
+    <div class="site-title">
+      <a href="/">adelzaalouk</a>
+    </div>
+    <nav class="site-nav">
+      {navItems.map(item => (
+        <a href={item.href} class:list={[{ active: currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href)) }]}>
+          {item.label}
+        </a>
+      ))}
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+  }
+
+  .site-nav a.active {
+    color: var(--accent);
+  }
+</style>
