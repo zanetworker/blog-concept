@@ -75,6 +75,7 @@ const { Content } = await render(post);
     grid-template-columns: 1fr 280px;
     gap: var(--spacing-xl);
     align-items: start;
+    max-width: 1100px;
   }
 
   .post-main {
@@ -103,6 +104,23 @@ const { Content } = await render(post);
     .post-sidebar {
       position: static;
       margin-top: var(--spacing-xl);
+    }
+  }
+
+  /* On large screens where TOC is visible, add left margin to avoid overlap */
+  @media (min-width: 1400px) {
+    .post-layout {
+      margin-left: 280px;
+      max-width: calc(100% - 280px);
+    }
+  }
+
+  /* On very large screens, balance the layout with right padding */
+  @media (min-width: 1700px) {
+    .post-layout {
+      margin-left: 280px;
+      margin-right: 80px;
+      max-width: 1100px;
     }
   }
 </style>
