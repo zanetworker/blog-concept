@@ -1,13 +1,14 @@
 ---
 ---
 
-<div class="search-container" data-pagefind-ui>
+<div class="search-container">
   <input
     type="search"
     class="search-input"
     placeholder="Search posts..."
     id="search-input"
     aria-label="Search posts"
+    autocomplete="off"
   />
   <div id="search-results" class="search-results"></div>
 </div>
@@ -18,30 +19,55 @@
     const results = document.getElementById('search-results');
     if (!input || !results) return;
 
+    let debounceTimer;
+
+    // Truncate and clean excerpt - always strip HTML
+    function cleanExcerpt(excerpt, maxLength = 200) {
+      if (!excerpt) return '';
+      // Strip all HTML tags
+      const temp = document.createElement('div');
+      temp.innerHTML = excerpt;
+      const text = temp.textContent || temp.innerText || '';
+      if (text.length <= maxLength) return text;
+      return text.substring(0, maxLength).trim() + '...';
+    }
+
     try {
-      // Dynamically import pagefind - only available after build
       const pagefind = await import('/pagefind/pagefind.js');
       await pagefind.init();
 
       input.addEventListener('input', async (e) => {
-        const query = e.target.value;
+        clearTimeout(debounceTimer);
+        const query = e.target.value.trim();
+
         if (!query) {
           results.innerHTML = '';
           return;
         }
 
-        const search = await pagefind.search(query);
-        const data = await Promise.all(search.results.slice(0, 10).map((r) => r.data()));
+        debounceTimer = setTimeout(async () => {
+          const search = await pagefind.search(query);
+          const data = await Promise.all(search.results.slice(0, 10).map((r) => r.data()));
 
-        results.innerHTML = data.map((item) => `
-          <a href="${item.url}" class="search-result">
-            <h3>${item.meta?.title || 'Untitled'}</h3>
-            <p>${item.excerpt}</p>
-          </a>
-        `).join('');
+          if (data.length === 0) {
+            results.innerHTML = '<p class="search-empty">No results found for "' + query + '"</p>';
+          } else {
+            results.innerHTML = `
+              <p class="search-count">${data.length} result${data.length === 1 ? '' : 's'} for "${query}"</p>
+              ${data.map((item) => `
+                <a href="${item.url}" class="search-result">
+                  <h3>${item.meta?.title || 'Untitled'}</h3>
+                  <p>${cleanExcerpt(item.excerpt)}</p>
+                </a>
+              `).join('')}
+            `;
+          }
+        }, 150);
       });
+
+      // Focus input on page load
+      input.focus();
     } catch (e) {
-      // Pagefind not available in dev mode - show message
       results.innerHTML = '<p class="search-dev-notice">Search is available after building the site (npm run build).</p>';
     }
   })();
@@ -49,21 +75,51 @@
 
 <style>
   .search-container {
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
   }
 
+  .search-input {
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 1.1rem;
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .search-input::placeholder {
+    color: var(--text-muted);
+  }
+
   .search-results {
-    margin-top: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .search-count {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-sm);
   }
 
   .search-result {
     display: block;
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: var(--bg-secondary);
     border: 1px solid var(--border);
-    border-radius: 4px;
-    margin-bottom: var(--spacing-sm);
+    border-radius: 8px;
     color: var(--text-primary);
+    text-decoration: none;
+    transition: border-color 0.15s ease;
   }
 
   .search-result:hover {
@@ -71,23 +127,33 @@
   }
 
   .search-result h3 {
-    font-size: 1rem;
-    margin-bottom: var(--spacing-xs);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-primary);
+  }
+
+  .search-result:hover h3 {
+    color: var(--text-primary);
   }
 
   .search-result p {
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     color: var(--text-secondary);
     margin: 0;
+    line-height: 1.5;
   }
 
-  .search-result mark {
-    background: var(--accent-muted);
-    color: var(--text-primary);
+  .search-empty {
+    color: var(--text-muted);
+    text-align: center;
+    padding: var(--spacing-xl);
   }
 
   .search-dev-notice {
     color: var(--text-secondary);
     font-style: italic;
+    text-align: center;
+    padding: var(--spacing-lg);
   }
 </style>

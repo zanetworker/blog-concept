@@ -8,6 +8,7 @@
     placeholder="Search posts..."
     id="main-search-input"
     aria-label="Search posts"
+    autocomplete="off"
   />
   <div id="main-search-results" class="search-bar-results"></div>
 </div>
@@ -18,10 +19,20 @@
     const results = document.getElementById('main-search-results');
     if (!input || !results) return;
 
+    let debounceTimer;
+
     // Close results when clicking outside
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.search-bar')) {
         results.classList.remove('active');
+      }
+    });
+
+    // Close on escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        results.classList.remove('active');
+        input.blur();
       }
     });
 
@@ -32,38 +43,56 @@
       }
     });
 
+    // Truncate and clean excerpt - always strip HTML
+    function cleanExcerpt(excerpt, maxLength = 120) {
+      if (!excerpt) return '';
+      // Strip all HTML tags
+      const temp = document.createElement('div');
+      temp.innerHTML = excerpt;
+      const text = temp.textContent || temp.innerText || '';
+      if (text.length <= maxLength) return text;
+      return text.substring(0, maxLength).trim() + '...';
+    }
+
     try {
       const pagefind = await import('/pagefind/pagefind.js');
       await pagefind.init();
 
       input.addEventListener('input', async (e) => {
-        const query = e.target.value;
+        clearTimeout(debounceTimer);
+        const query = e.target.value.trim();
+
         if (!query) {
           results.innerHTML = '';
           results.classList.remove('active');
           return;
         }
 
-        const search = await pagefind.search(query);
-        const data = await Promise.all(search.results.slice(0, 8).map((r) => r.data()));
+        // Debounce search
+        debounceTimer = setTimeout(async () => {
+          const search = await pagefind.search(query);
+          const data = await Promise.all(search.results.slice(0, 6).map((r) => r.data()));
 
-        if (data.length === 0) {
-          results.innerHTML = '<div class="search-bar-empty">No results found</div>';
-        } else {
-          results.innerHTML = data.map((item) => `
-            <a href="${item.url}" class="search-bar-result">
-              <span class="search-bar-result-title">${item.meta?.title || 'Untitled'}</span>
-              <span class="search-bar-result-excerpt">${item.excerpt || ''}</span>
-            </a>
-          `).join('');
-        }
-        results.classList.add('active');
+          if (data.length === 0) {
+            results.innerHTML = '<div class="search-bar-empty">No results found</div>';
+          } else {
+            results.innerHTML = data.map((item) => `
+              <a href="${item.url}" class="search-bar-result">
+                <span class="search-bar-result-title">${item.meta?.title || 'Untitled'}</span>
+                <span class="search-bar-result-excerpt">${cleanExcerpt(item.excerpt)}</span>
+              </a>
+            `).join('');
+          }
+          results.classList.add('active');
+        }, 150);
       });
     } catch (e) {
       // Pagefind not available in dev mode
-      input.addEventListener('focus', () => {
-        results.innerHTML = '<div class="search-bar-empty">Search available after build</div>';
-        results.classList.add('active');
+      input.addEventListener('input', () => {
+        if (input.value.trim()) {
+          results.innerHTML = '<div class="search-bar-empty">Search available after build (npm run build)</div>';
+          results.classList.add('active');
+        }
       });
     }
   })();
@@ -72,7 +101,6 @@
 <style>
   .search-bar {
     position: relative;
-    margin-bottom: var(--spacing-lg);
   }
 
   .search-bar-input {
@@ -81,8 +109,8 @@
     border: 1px solid var(--border);
     border-radius: 8px;
     color: var(--text-primary);
-    padding: var(--spacing-md) var(--spacing-lg);
-    font-size: 1rem;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.9rem;
   }
 
   .search-bar-input:focus {
@@ -96,63 +124,71 @@
 
   .search-bar-results {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 8px);
     left: 0;
     right: 0;
-    max-height: 400px;
+    max-height: 420px;
     overflow-y: auto;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-top: var(--spacing-xs);
+    border-radius: 12px;
     display: none;
-    z-index: 100;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    padding: var(--spacing-sm);
   }
 
   .search-bar-results.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
   }
 
   .search-bar-result {
     display: block;
-    padding: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
     color: var(--text-primary);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .search-bar-result:last-child {
-    border-bottom: none;
+    text-decoration: none;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 0.15s ease;
   }
 
   .search-bar-result:hover {
     background: var(--bg-tertiary);
+    border-color: var(--text-muted);
+    transform: translateX(2px);
   }
 
   .search-bar-result-title {
     display: block;
-    font-weight: 500;
-    margin-bottom: var(--spacing-xs);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .search-bar-result:hover .search-bar-result-title {
+    color: var(--text-primary);
   }
 
   .search-bar-result-excerpt {
     display: block;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    max-height: 3em;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .search-bar-result mark {
-    background: var(--accent-muted);
-    color: var(--text-primary);
   }
 
   .search-bar-empty {
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg);
     color: var(--text-muted);
-    font-style: italic;
+    font-size: 0.9rem;
     text-align: center;
+    background: var(--bg-primary);
+    border-radius: 8px;
   }
 </style>
