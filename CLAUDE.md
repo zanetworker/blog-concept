@@ -25,7 +25,9 @@ src/
 The `scripts/extract-content.js` script automatically extracts from entries:
 - **Quotes**: Blockquotes with `— Author` attribution
 - **Notes**: `[!note]` or `[!til]` blocks
-- **Links**: From frontmatter `links:` array
+- **Links**: From frontmatter `links:` array AND inline markdown links `[title](url)`
+  - Filters out images, internal links, tracking URLs
+  - Skips generic titles (single words like "paper", "link", etc.)
 
 Extracted content appears in the Highlights section of the site.
 
