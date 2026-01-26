@@ -5,6 +5,8 @@ tags: ["vmware","technical"]
 type: link
 linkUrl: "https://www.vmware.com/support/pubs/vrealize-automation-pubs.html"
 linkTitle: "vRA Documentation (Feast yer Eyes)"
+sourceEntry: "vrealize-capsule.md"
+sourceEntryTitle: "VMware vRealize Automation Capsule"
 ---
 
 _Extracted from: vrealize-capsule.md_

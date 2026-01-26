@@ -5,6 +5,8 @@ tags: ["ai","innovation","history"]
 type: link
 linkUrl: "https://www.youtube.com/watch?v=B9zVdU3N7DY"
 linkTitle: "Ed Feigenbaum's Search for A.I."
+sourceEntry: "history-ai-and-non-consumption-part.md"
+sourceEntryTitle: "History, AI, and Non-Consumption: Part I, Winter is Coming"
 ---
 
 _Extracted from: history-ai-and-non-consumption-part.md_

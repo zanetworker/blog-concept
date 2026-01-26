@@ -5,6 +5,8 @@ tags: ["products","ai","innovation","strategy"]
 type: link
 linkUrl: "https://en.wikipedia.org/wiki/Machine_perception"
 linkTitle: "perceives its environment"
+sourceEntry: "beyond-llms-compounds-systems-agents.md"
+sourceEntryTitle: "Beyond LLMs: Compounds Systems, Agents, and Whole AI Products"
 ---
 
 _Extracted from: beyond-llms-compounds-systems-agents.md_

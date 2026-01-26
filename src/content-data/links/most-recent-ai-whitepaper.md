@@ -5,6 +5,8 @@ tags: ["ai","tech","strategy"]
 type: link
 linkUrl: "https://www.cncf.io/reports/cloud-native-artificial-intelligence-whitepaper/"
 linkTitle: "most recent AI whitepaper"
+sourceEntry: "platforms-products-apis-and-indian.md"
+sourceEntryTitle: "Platforms, Products, APIs, and Indian Food"
 ---
 
 _Extracted from: platforms-products-apis-and-indian.md_

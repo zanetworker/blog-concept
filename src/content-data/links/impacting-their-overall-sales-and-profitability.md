@@ -5,6 +5,8 @@ tags: ["ai","strategy"]
 type: link
 linkUrl: "https://www.globaldata.com/data-insights/technology-media-and-telecom/nvidia-issues-pessimistic-earnings-outlook-as-videogame-industry-slows-down/"
 linkTitle: "impacting their overall sales and profitability."
+sourceEntry: "pesteling-nvidias-market-cap.md"
+sourceEntryTitle: "PESTELing NVIDIA's Market CAP"
 ---
 
 _Extracted from: pesteling-nvidias-market-cap.md_

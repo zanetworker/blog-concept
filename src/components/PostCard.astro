@@ -1,5 +1,5 @@
 ---
-import type { CollectionEntry } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import { formatDate } from '../utils/dates';
 import { getPostUrl } from '../utils/posts';
 import TagList from './TagList.astro';
@@ -9,8 +9,28 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const { title, date, type, tags, summary, linkUrl, linkTitle, source, sourceUrl } = post.data;
+const { title, date, type, tags, summary, linkUrl, linkTitle, source, sourceUrl, sourceEntry, sourceEntryTitle } = post.data;
 const url = getPostUrl(post);
+
+// Look up source entry to get correct URL (for links)
+let sourcePostUrl = '';
+let sourcePostTitle = sourceEntryTitle || '';
+
+if (sourceEntry && type === 'link') {
+  const allPosts = await getCollection('posts');
+  const sourceSlug = sourceEntry.replace('.md', '');
+  const sourcePost = allPosts.find(p =>
+    p.id === `entries/${sourceSlug}` ||
+    p.id.endsWith(`/${sourceSlug}`) ||
+    p.id === sourceSlug
+  );
+  if (sourcePost) {
+    sourcePostUrl = getPostUrl(sourcePost);
+    if (!sourceEntryTitle) {
+      sourcePostTitle = sourcePost.data.title;
+    }
+  }
+}
 ---
 
 <article class="post">
@@ -37,5 +57,29 @@ const url = getPostUrl(post);
 
   {summary && <p class="post-summary">{summary}</p>}
 
-  <TagList tags={tags} />
+  <div class="post-footer">
+    <TagList tags={tags} />
+    {type === 'link' && sourcePostUrl && (
+      <a href={sourcePostUrl} class="source-link">from: {sourcePostTitle}</a>
+    )}
+  </div>
 </article>
+
+<style>
+  .post-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  .source-link {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .source-link:hover {
+    color: var(--accent);
+  }
+</style>

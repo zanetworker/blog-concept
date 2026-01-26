@@ -5,6 +5,8 @@ tags: ["ai","innovation","history"]
 type: link
 linkUrl: "https://deepmind.google/technologies/alphago/#:~:text=AlphaGo%20defeated%20a%20human%20Go,problems%20in%20highly%20complex%20domains."
 linkTitle: "world champion of Go at the time"
+sourceEntry: "history-ai-and-non-consumption-part.md"
+sourceEntryTitle: "History, AI, and Non-Consumption: Part I, Winter is Coming"
 ---
 
 _Extracted from: history-ai-and-non-consumption-part.md_

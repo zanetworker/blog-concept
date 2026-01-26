@@ -5,6 +5,8 @@ tags: ["ai","business models"]
 type: link
 linkUrl: "https://www.chartr.co/stories/2023-11-20-1-openai-unusual-structure-gives-board-control"
 linkTitle: "Control Alt delete: Exploring OpenAI's corporate structure, after Sam Altman’s shock dismissal"
+sourceEntry: "ai-market-dynamics-open-vs-closed.md"
+sourceEntryTitle: "AI Market Dynamics: Open Vs. Closed, Direct Vs. Indirect"
 ---
 
 _Extracted from: ai-market-dynamics-open-vs-closed.md_

@@ -5,6 +5,8 @@ tags: ["ai","tech"]
 type: link
 linkUrl: "https://www.ibm.com/policy/ibm-artificial-intelligence-pillars/"
 linkTitle: "IBM’s AI pillars"
+sourceEntry: "balancing-the-yinyang-of-ai-emergence.md"
+sourceEntryTitle: "Balancing the Yin/Yang of AI Emergence"
 ---
 
 _Extracted from: balancing-the-yinyang-of-ai-emergence.md_

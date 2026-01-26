@@ -5,6 +5,8 @@ tags: ["ai","innovation","history"]
 type: link
 linkUrl: "https://arxiv.org/abs/2310.20216"
 linkTitle: "it still beat"
+sourceEntry: "history-ai-and-non-consumption-part.md"
+sourceEntryTitle: "History, AI, and Non-Consumption: Part I, Winter is Coming"
 ---
 
 _Extracted from: history-ai-and-non-consumption-part.md_

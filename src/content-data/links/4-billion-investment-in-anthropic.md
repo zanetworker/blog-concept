@@ -5,6 +5,8 @@ tags: ["ai","business models"]
 type: link
 linkUrl: "https://www.cnbc.com/2024/03/27/amazon-spends-2point7b-on-startup-anthropic-in-largest-venture-investment.html"
 linkTitle: "$4 billion investment in Anthropic"
+sourceEntry: "ai-market-dynamics-open-vs-closed.md"
+sourceEntryTitle: "AI Market Dynamics: Open Vs. Closed, Direct Vs. Indirect"
 ---
 
 _Extracted from: ai-market-dynamics-open-vs-closed.md_

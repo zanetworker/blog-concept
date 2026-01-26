@@ -5,6 +5,8 @@ tags: ["ai","business models","strategy"]
 type: link
 linkUrl: "https://www.sec.gov/Archives/edgar/data/1018724/000119312511110797/dex991.htm"
 linkTitle: "2010 Letter to Shareholders"
+sourceEntry: "customer-obsession-powered-by-the.md"
+sourceEntryTitle: "Customer-Obsession, Powered by the Internet & AI as Enablers: The Bazos Narrative"
 ---
 
 _Extracted from: customer-obsession-powered-by-the.md_

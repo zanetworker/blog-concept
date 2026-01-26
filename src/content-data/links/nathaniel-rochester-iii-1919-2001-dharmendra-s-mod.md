@@ -5,6 +5,8 @@ tags: ["ai","innovation","history"]
 type: link
 linkUrl: "https://modha.org/2006/09/nathaniel-rochester-iii-1919-2001/"
 linkTitle: "Nathaniel Rochester III (1919-2001) - Dharmendra S. Modha"
+sourceEntry: "history-ai-and-non-consumption-part.md"
+sourceEntryTitle: "History, AI, and Non-Consumption: Part I, Winter is Coming"
 ---
 
 _Extracted from: history-ai-and-non-consumption-part.md_

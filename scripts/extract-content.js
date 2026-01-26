@@ -405,7 +405,7 @@ _Extracted from: ${quote.sourceFile}_
 }
 
 // Create link file
-function createLinkFile(link, date, tags) {
+function createLinkFile(link, date, tags, sourceTitle) {
   const title = link.title || new URL(link.url).hostname;
   const slug = slugify(title);
   const filename = `${slug}.md`;
@@ -418,6 +418,8 @@ function createLinkFile(link, date, tags) {
 
   const viaSection = link.via ? `\nvia: "${link.via}"` : '';
   const viaUrlSection = link.viaUrl ? `\nviaUrl: "${link.viaUrl}"` : '';
+  const sourceEntryLine = `\nsourceEntry: "${link.sourceFile}"`;
+  const sourceEntryTitleLine = sourceTitle ? `\nsourceEntryTitle: "${sourceTitle.replace(/"/g, '\\"')}"` : '';
 
   // Escape URL for YAML (handle backslashes and quotes)
   const escapedUrl = link.url.replace(/\\/g, '').replace(/"/g, '%22');
@@ -428,7 +430,7 @@ date: ${date}
 tags: ${JSON.stringify(tags.length ? tags : ['reading'])}
 type: link
 linkUrl: "${escapedUrl}"
-linkTitle: "${title.replace(/"/g, '\\"')}"${viaSection}${viaUrlSection}
+linkTitle: "${title.replace(/"/g, '\\"')}"${viaSection}${viaUrlSection}${sourceEntryLine}${sourceEntryTitleLine}
 ---
 
 _Extracted from: ${link.sourceFile}_
@@ -536,7 +538,7 @@ async function extract() {
       if (!log.links.includes(linkId)) {
         console.log(`🔗 Link in ${entry}:`);
         console.log(`   ${link.title || link.url}`);
-        const created = createLinkFile(link, date, tags);
+        const created = createLinkFile(link, date, tags, entryTitle);
         if (created) {
           log.links.push(linkId);
           totalLinks++;

@@ -5,6 +5,8 @@ tags: ["docker","containers","technical"]
 type: link
 linkUrl: "https://github.com/zanetworker/dockument"
 linkTitle: "github repo for DOCKument"
+sourceEntry: "dockument.md"
+sourceEntryTitle: "DOCKument: Auto-generating Documentation for Dockerfiles and Images"
 ---
 
 _Extracted from: dockument.md_

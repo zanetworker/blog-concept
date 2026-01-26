@@ -5,6 +5,8 @@ tags: ["vmware","technical"]
 type: link
 linkUrl: "http://pubs.vmware.com/vra-62/topic/com.vmware.ICbase/PDF/vrealize-automation-62-custom-properties.pdf"
 linkTitle: "Check out vRA Custom Properties"
+sourceEntry: "vrealize-capsule.md"
+sourceEntryTitle: "VMware vRealize Automation Capsule"
 ---
 
 _Extracted from: vrealize-capsule.md_
