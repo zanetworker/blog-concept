@@ -294,6 +294,81 @@ function extractLinksFromFrontmatter(frontmatter, sourceFile) {
   return links;
 }
 
+// Extract inline markdown links from body
+function extractLinksFromBody(body, sourceFile) {
+  const links = [];
+  const seenUrls = new Set();
+
+  // Pattern: [title](url) - but not images ![alt](url)
+  const linkPattern = /(?<!!)\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+
+  // Domains to skip (internal, images, substackcdn, etc.)
+  const skipDomains = [
+    'substackcdn.com',
+    'substack-post-media.s3.amazonaws.com',
+    'thetechnomist.com',  // Skip self-references
+  ];
+
+  // URL patterns to skip
+  const skipPatterns = [
+    /\.(png|jpg|jpeg|gif|svg|webp|ico)$/i,  // Images
+    /\/image\//i,  // Image paths
+    /utm_source=/i,  // Tracking links
+    /\?action=share/i,  // Share links
+  ];
+
+  let match;
+  while ((match = linkPattern.exec(body)) !== null) {
+    const title = match[1].trim();
+    const url = match[2].trim();
+
+    // Skip if already seen
+    if (seenUrls.has(url)) continue;
+
+    // Skip if matches skip patterns
+    if (skipPatterns.some(pattern => pattern.test(url))) continue;
+
+    // Skip if from skip domains
+    try {
+      const hostname = new URL(url).hostname;
+      if (skipDomains.some(domain => hostname.includes(domain))) continue;
+    } catch {
+      continue; // Invalid URL
+    }
+
+    // Skip very short or generic titles
+    if (title.length < 4) continue;
+
+    // Skip generic single-word or very short titles
+    const genericTitles = [
+      'here', 'link', 'this', 'click', 'post', 'paper', 'book', 'article',
+      'documentation', 'docs', 'wiki', 'source', 'code', 'yaml', 'json',
+      'linkedin', 'twitter', 'github', 'google', 'slack', 'medium',
+      'blog', 'website', 'site', 'page', 'read', 'more', 'see', 'view',
+      'specification', 'spec', 'reference', 'guide', 'tutorial',
+      'intelligent', 'autonomously', 'learning', 'knowledge', 'system',
+      'state', 'firm', 'biome', 'cockpit', 'thermostat', 'newer'
+    ];
+    if (genericTitles.some(g => title.toLowerCase() === g)) continue;
+
+    // Skip titles that are just formatting artifacts
+    if (/^\*+/.test(title)) continue;  // Starts with asterisks
+    if (/^\[/.test(title)) continue;   // Starts with bracket
+    if (/^["']/.test(title)) continue; // Starts with quote
+
+    seenUrls.add(url);
+    links.push({
+      url,
+      title,
+      via: '',
+      viaUrl: '',
+      sourceFile
+    });
+  }
+
+  return links;
+}
+
 // Generate slug from text
 function slugify(text) {
   return text
@@ -458,7 +533,9 @@ async function extract() {
     }
 
     // === LINKS ===
-    const links = extractLinksFromFrontmatter(frontmatter, entry);
+    const fmLinks = extractLinksFromFrontmatter(frontmatter, entry);
+    const bodyLinks = extractLinksFromBody(body, entry);
+    const links = [...fmLinks, ...bodyLinks];
     for (const link of links) {
       const linkId = `${entry}:${link.url}`;
       if (!log.links.includes(linkId)) {
