@@ -336,20 +336,12 @@ function extractLinksFromBody(body, sourceFile) {
       continue; // Invalid URL
     }
 
-    // Skip very short or generic titles
+    // Skip very short titles
     if (title.length < 4) continue;
 
-    // Skip generic single-word or very short titles
-    const genericTitles = [
-      'here', 'link', 'this', 'click', 'post', 'paper', 'book', 'article',
-      'documentation', 'docs', 'wiki', 'source', 'code', 'yaml', 'json',
-      'linkedin', 'twitter', 'github', 'google', 'slack', 'medium',
-      'blog', 'website', 'site', 'page', 'read', 'more', 'see', 'view',
-      'specification', 'spec', 'reference', 'guide', 'tutorial',
-      'intelligent', 'autonomously', 'learning', 'knowledge', 'system',
-      'state', 'firm', 'biome', 'cockpit', 'thermostat', 'newer'
-    ];
-    if (genericTitles.some(g => title.toLowerCase() === g)) continue;
+    // Skip single-word titles (require at least 3 words for quality)
+    const wordCount = title.split(/\s+/).filter(w => w.length > 0).length;
+    if (wordCount < 3) continue;
 
     // Skip titles that are just formatting artifacts
     if (/^\*+/.test(title)) continue;  // Starts with asterisks
@@ -427,12 +419,15 @@ function createLinkFile(link, date, tags) {
   const viaSection = link.via ? `\nvia: "${link.via}"` : '';
   const viaUrlSection = link.viaUrl ? `\nviaUrl: "${link.viaUrl}"` : '';
 
+  // Escape URL for YAML (handle backslashes and quotes)
+  const escapedUrl = link.url.replace(/\\/g, '').replace(/"/g, '%22');
+
   const content = `---
 title: "${title.replace(/"/g, '\\"')}"
 date: ${date}
 tags: ${JSON.stringify(tags.length ? tags : ['reading'])}
 type: link
-linkUrl: "${link.url}"
+linkUrl: "${escapedUrl}"
 linkTitle: "${title.replace(/"/g, '\\"')}"${viaSection}${viaUrlSection}
 ---
 
