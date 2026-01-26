@@ -8,7 +8,7 @@ const posts = await getPostsByType('entry');
 
 <Listing title="Entries">
   <h1 class="page-title">Entries</h1>
-  <p class="page-description">Long-form blog posts and articles.</p>
+  <p class="page-description">My blog posts and articles.</p>
   <div class="entries-list">
     {posts.map(post => <PostListItem post={post} />)}
   </div>

@@ -6,12 +6,12 @@
 
 ## Overview
 
-A personal blog inspired by [Simon Willison's blog](https://simonwillison.net) with a black/red theme inspired by [The Technomist](https://thetechnomist.com). Built with Astro for long-term maintainability and zero-cost hosting.
+A personal blog with a black/red theme inspired by [The Technomist](https://thetechnomist.com). Built with Astro for long-term maintainability and zero-cost hosting.
 
 ## Goals
 
 - Multiple content types (entries, links, quotes, notes)
-- Tag-based content organization with related tags (Simon Willison style)
+- Tag-based content organization with related tags
 - Full-text search
 - Comments system
 - Dark/light theme toggle

@@ -5,7 +5,7 @@ A personal blog built with Astro 5.x featuring multiple content types, tag-based
 ## Features
 
 - **Multiple Content Types** - Entries (long-form posts), Links (blogmarks), and Highlights (quotes & notes)
-- **Tag System** - Tag-based organization with related tags sidebar (Simon Willison style)
+- **Tag System** - Tag-based organization with related tags sidebar 
 - **Full-Text Search** - Static search powered by Pagefind
 - **Comments** - GitHub Discussions integration via Giscus
 - **Dark/Light Theme** - Black/red theme with toggle support
@@ -316,6 +316,5 @@ MIT
 
 ## Acknowledgments
 
-- Design inspired by [Simon Willison's blog](https://simonwillison.net)
 - Theme colors inspired by [The Technomist](https://thetechnomist.substack.com)
 - Built with [Astro](https://astro.build)

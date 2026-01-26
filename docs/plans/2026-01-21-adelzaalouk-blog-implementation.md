@@ -1556,11 +1556,6 @@ import Base from '../layouts/Base.astro';
 
     <h2>This Blog</h2>
 
-    <p>
-      This blog is inspired by <a href="https://simonwillison.net">Simon Willison's blog</a>,
-      featuring multiple content types:
-    </p>
-
     <ul>
       <li><strong>Entries</strong> - Long-form blog posts</li>
       <li><strong>Links</strong> - Interesting links with commentary</li>
@@ -1735,7 +1730,7 @@ This plan implements the adelzaalouk blog with:
 
 1. **Astro 5.x** with Content Layer API (modern, v6-ready)
 2. **4 content types**: entries, links, quotes, notes
-3. **Tag system** with related tags (Simon Willison style)
+3. **Tag system** with related tags 
 4. **Pagefind search** for static full-text search
 5. **Giscus comments** via GitHub Discussions
 6. **Black/red theme** (Technomist inspired) with dark/light toggle
