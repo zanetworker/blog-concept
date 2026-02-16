@@ -1,9 +1,9 @@
 ---
-title: "Deploying n8n on OpenShift: What Actually Works in 2026"
+title: "n8n on OpenShift: From Broken Template to AI Workflows with vLLM"
 date: 2026-02-16
-tags: ["openshift", "kubernetes", "n8n", "kustomize", "devops"]
+tags: ["openshift", "kubernetes", "n8n", "kustomize", "openshift-ai", "vllm", "llama-stack", "ai"]
 type: entry
-summary: "A community PR from 2021 tried to add an OpenShift template to n8n. It never merged. Here's what was wrong with it, what breaks on modern clusters, and how to build a working deployment with Kustomize."
+summary: "A community PR tried to add an OpenShift template to n8n. It was broken in every way that matters. Here's how to fix it, deploy with Kustomize, and wire n8n into vLLM and OpenShift AI for real AI workflows."
 links:
   - url: "https://github.com/n8n-io/n8n/pull/1729"
     title: "Original OpenShift Template PR"
@@ -14,6 +14,15 @@ links:
   - url: "https://github.com/zanetworker/n8n-openshift"
     title: "n8n-openshift Kustomize repo"
     via: "GitHub"
+  - url: "https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/"
+    title: "Red Hat OpenShift AI documentation"
+    via: "Red Hat"
+  - url: "https://docs.vllm.ai/en/stable/"
+    title: "vLLM documentation"
+    via: "vLLM"
+  - url: "https://llama-stack.readthedocs.io/en/latest/"
+    title: "Llama Stack documentation"
+    via: "Meta"
 ---
 
 I looked at a community PR from 2021 that tried to add an OpenShift deployment template to the n8n repo. It never got merged. The n8n maintainers closed it in 2023, saying they'd moved deployment templates into separate repos. But the template itself is interesting because it shows every mistake people make when porting a Docker Compose workflow to OpenShift.
@@ -144,6 +153,85 @@ I deployed this to a live OpenShift 4.x sandbox cluster. Three things failed bef
 
 After those three fixes, n8n v2.7.5 booted, ran its SQLite migrations, and the health endpoint returned 200 through the Route.
 
+## Why OpenShift and not just Kubernetes
+
+A fair question. If the base Kustomize layer works on vanilla Kubernetes, why bother with the OpenShift overlay?
+
+The deployment part is the easy bit. The interesting part is what you get access to once n8n is running on OpenShift, especially if your organization already runs OpenShift AI.
+
+**Model serving is already there.** OpenShift AI ships with KServe and vLLM as first-class model serving runtimes. If your team is already serving models through RHOAI (Granite, Llama, Mistral, whatever), n8n can call those models without any additional infrastructure. The models expose OpenAI-compatible `/v1/chat/completions` endpoints on internal Service URLs. n8n talks to them over the cluster network, no ingress or public exposure required.
+
+**GPU scheduling is handled.** OpenShift with the NVIDIA GPU Operator or AMD ROCm support handles GPU time-slicing and MIG partitioning. Your model inference pods get GPU resources through standard Kubernetes resource requests. n8n doesn't need to know anything about GPUs; it just calls an HTTP endpoint. But the fact that the model and the workflow engine live on the same cluster means lower latency and no egress costs.
+
+**Network policy and multi-tenancy are built in.** OpenShift projects give you namespace isolation with network policies out of the box. Your n8n instance can reach your model serving endpoints but can't reach someone else's. On vanilla Kubernetes, you'd have to set this up yourself.
+
+**TLS everywhere without thinking about it.** The Route we created gets a valid certificate from the cluster's wildcard cert. Service-to-service traffic inside the cluster uses the internal CA. No cert management on your part.
+
+## Connecting n8n to vLLM on the same cluster
+
+If you have a vLLM instance running on the same OpenShift cluster (either standalone or through OpenShift AI), the connection is straightforward. The model exposes an OpenAI-compatible API. n8n calls it.
+
+There's a catch with n8n's built-in OpenAI node, though. I tested this with a LiteLLM proxy fronting a DeepSeek R1 model. The curl worked fine:
+
+```bash
+curl -X POST https://litellm-proxy.apps.example.com/v1/chat/completions \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "DeepSeek-R1-Distill-Qwen-14B-W4A16",
+    "messages": [{"role": "user", "content": "Hello"}]
+  }'
+```
+
+The response came back with reasoning content and everything. But n8n's OpenAI node returned a 404: `litellm.NotFoundError: Received Model Group=DeepSeek-R1-Distill-Qwen-14B-W4A16`. Same model name, same endpoint, different result.
+
+The issue is that n8n's OpenAI node does its own request construction and model validation. It doesn't always play well with OpenAI-compatible proxies that aren't literally OpenAI. The fix is to skip the OpenAI node entirely and use an **HTTP Request** node:
+
+1. Method: POST
+2. URL: `https://your-vllm-or-litellm-endpoint/v1/chat/completions`
+3. Authentication: Header Auth with `Authorization: Bearer <key>`
+4. Body: raw JSON with model name and messages
+
+This mirrors the curl exactly and works every time. You lose some of n8n's AI-specific node sugar (automatic message history, agent loops), but you gain reliability and control over exactly what gets sent. For most automation use cases, an HTTP Request node that you understand is better than an AI node that silently transforms your request.
+
+## The bigger picture: n8n as an AI workflow glue layer
+
+Running n8n on the same cluster as your model serving infrastructure opens up a specific category of automation that's awkward to build any other way.
+
+**Workflow-triggered inference.** A webhook fires when a support ticket lands, n8n extracts the text, sends it to a Llama model for classification, routes the ticket to the right team, and posts a summary to Slack. Every step is visible in the n8n canvas. No custom Python service, no queue infrastructure, no deployment pipeline for your glue code.
+
+**RAG pipelines with cluster-local retrieval.** If you're running a vector database (Milvus, Qdrant, pgvector) on the same cluster, n8n can orchestrate the full retrieval-augmented generation loop: receive a question, query the vector store, format the context, call the model, return the answer. All traffic stays inside the cluster.
+
+**Model evaluation and monitoring.** Schedule n8n workflows to periodically send test prompts to your models and check the responses. Compare outputs across model versions. Log the results to a spreadsheet or database. This is the kind of operational task that's too small for a dedicated MLOps platform but too important to do manually.
+
+**LLaMA Stack integration.** If you're running Meta's [Llama Stack](https://llama-stack.readthedocs.io/en/latest/) on OpenShift, it exposes REST APIs for inference, safety, memory, and agent orchestration. n8n can call these endpoints the same way it calls vLLM. Use the safety API to check inputs before sending them to the model. Use the memory API to maintain conversation context across workflow executions. Llama Stack's agent API can even handle multi-turn tool-calling loops, with n8n acting as the trigger and routing layer around it.
+
+**Multi-model routing.** With LiteLLM as a proxy (which is what OpenShift AI uses under the hood for model routing), n8n can target different models for different tasks within the same workflow. Send classification tasks to a small, fast model. Send summarization to a larger one. Send code generation to a code-specific model. Each is just a different `model` value in the HTTP Request body.
+
+## What this looks like in practice
+
+The stack, from bottom to top:
+
+```
+OpenShift cluster
+  |
+  +-- GPU nodes with NVIDIA Operator
+  |     |
+  |     +-- vLLM / KServe InferenceService (your models)
+  |     +-- Llama Stack server (optional, for safety/memory/agents)
+  |
+  +-- CPU nodes
+        |
+        +-- n8n (this deployment)
+        +-- LiteLLM proxy (model routing, optional)
+        +-- Vector DB (RAG, optional)
+        +-- PostgreSQL (n8n backend, for multi-replica)
+```
+
+n8n runs on CPU nodes. It doesn't need GPUs. It calls the model serving endpoints over the internal network. Routes expose n8n to users. Everything else stays internal.
+
+The separation matters. n8n handles the workflow logic: when to call what, what to do with the response, where to send the output. The model servers handle inference. Neither needs to know about the other's internals. If you swap vLLM for TGI, or replace Llama 3 with Granite, n8n doesn't care. You change a URL and a model name.
+
 ## Summary of changes from the original PR
 
 | Issue | Original | Fix |
@@ -158,3 +246,5 @@ After those three fixes, n8n v2.7.5 booted, ran its SQLite migrations, and the h
 | Service selector | deploymentconfig label | app label |
 | Template format | OpenShift Template | Kustomize base + overlay |
 | Volume permissions | Assumed root | fsGroup from namespace range |
+
+The deployment is the starting point. The real value is what happens after: connecting n8n to the AI infrastructure that's already running on your cluster, and building workflows that would otherwise require custom services, queues, and deployment pipelines. OpenShift gives you the platform. n8n gives you the wiring.
