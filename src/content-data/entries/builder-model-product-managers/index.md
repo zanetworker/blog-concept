@@ -1,5 +1,5 @@
 ---
-title: "If Everyone Can Code, Do We Still Need Product Managers?"
+title: "If AI Can Code, Who Makes the Call?"
 date: 2026-02-16
 tags: ["product management", "ai", "vibe coding", "builder model"]
 type: entry
