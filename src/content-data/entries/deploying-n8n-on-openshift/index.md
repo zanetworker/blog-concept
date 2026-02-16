@@ -4,7 +4,6 @@ date: 2026-02-16
 tags: ["openshift", "kubernetes", "n8n", "kustomize", "devops"]
 type: entry
 summary: "A community PR from 2021 tried to add an OpenShift template to n8n. It never merged. Here's what was wrong with it, what breaks on modern clusters, and how to build a working deployment with Kustomize."
-cover: "images/builder-pms.png"
 links:
   - url: "https://github.com/n8n-io/n8n/pull/1729"
     title: "Original OpenShift Template PR"
@@ -16,8 +15,6 @@ links:
     title: "n8n-openshift Kustomize repo"
     via: "GitHub"
 ---
-
-![](images/builder-pms.png)
 
 I looked at a community PR from 2021 that tried to add an OpenShift deployment template to the n8n repo. It never got merged. The n8n maintainers closed it in 2023, saying they'd moved deployment templates into separate repos. But the template itself is interesting because it shows every mistake people make when porting a Docker Compose workflow to OpenShift.
 

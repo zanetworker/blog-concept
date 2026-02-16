@@ -4,6 +4,7 @@ date: 2026-02-16
 tags: ["product management", "ai", "vibe coding", "builder model"]
 type: entry
 summary: "The builder model is appealing and mostly wrong. Faster building means more need for someone deciding what to build, not less."
+cover: "images/builder-pms.png"
 links:
   - url: "https://www.lennysnewsletter.com/p/why-linkedin-is-replacing-pms"
     title: "Why LinkedIn is Replacing PMs"
@@ -37,6 +38,8 @@ quotes:
     source: "Naval Ravikant"
     sourceUrl: "https://officechai.com/ai/vibe-coding-is-the-new-product-management-training-and-tuning-models-is-the-new-coding-naval-ravikant/"
 ---
+
+![](images/builder-pms.png)
 
 Something changed in the last year that I don't think we've fully processed yet.
 
