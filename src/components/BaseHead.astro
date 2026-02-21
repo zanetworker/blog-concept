@@ -52,6 +52,15 @@ const ogImage = image ? (image.startsWith('http') ? image : `${siteUrl}${image}`
 
 <link rel="alternate" type="application/atom+xml" title="adelzaalouk RSS" href="/atom.xml" />
 
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EK2GVRX8SX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-EK2GVRX8SX');
+</script>
+
 <!-- Google Fonts for Source Serif Pro -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
