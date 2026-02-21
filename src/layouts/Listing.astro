@@ -30,6 +30,11 @@ const { title, description } = Astro.props;
           <slot />
         </div>
         <aside class="sidebar">
+          <div class="subscribe-widget">
+            <h3>Newsletter</h3>
+            <p>Where business and tech speak the same language.</p>
+            <a href="https://thetechnomist.com/subscribe" target="_blank" rel="noopener" class="subscribe-btn">Subscribe</a>
+          </div>
           <Recommended />
         </aside>
       </div>
@@ -59,6 +64,50 @@ const { title, description } = Astro.props;
   .sidebar {
     position: sticky;
     top: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .subscribe-widget {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: var(--spacing-md);
+  }
+
+  .subscribe-widget h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .subscribe-widget p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-sm);
+    line-height: 1.4;
+  }
+
+  .subscribe-btn {
+    display: block;
+    background: var(--accent);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: opacity 0.2s ease;
+  }
+
+  .subscribe-btn:hover {
+    opacity: 0.85;
+    color: #fff;
   }
 
   @media (max-width: 1024px) {
