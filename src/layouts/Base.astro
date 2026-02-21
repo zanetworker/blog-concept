@@ -7,15 +7,20 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  image?: string | null;
+  type?: string;
+  date?: Date;
+  updated?: Date;
+  tags?: string[];
 }
 
-const { title, description } = Astro.props;
+const { title, description, image, type, date, updated, tags } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <BaseHead title={title} description={description} />
+    <BaseHead title={title} description={description} image={image} type={type} date={date} updated={updated} tags={tags} />
   </head>
   <body>
     <Header />

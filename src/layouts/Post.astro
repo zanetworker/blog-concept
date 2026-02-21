@@ -6,6 +6,7 @@ import Comments from '../components/Comments.astro';
 import TableOfContents from '../components/TableOfContents.astro';
 import Recommended from '../components/Recommended.astro';
 import { formatDate } from '../utils/dates';
+import { getPostUrl, getPostImage } from '../utils/posts';
 
 interface Props {
   post: CollectionEntry<'posts'>;
@@ -14,9 +15,34 @@ interface Props {
 const { post } = Astro.props;
 const { title, date, updated, type, tags, source, sourceUrl, linkUrl, linkTitle, via, viaUrl } = post.data;
 const { Content } = await render(post);
+const postImage = getPostImage(post);
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') || 'https://adelzaalouk.com';
+const postUrl = `${siteUrl}${getPostUrl(post)}`;
+const jsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description: post.data.summary || '',
+  datePublished: date.toISOString(),
+  ...(updated && { dateModified: updated.toISOString() }),
+  ...(postImage && { image: postImage.startsWith('http') ? postImage : `${siteUrl}${postImage}` }),
+  url: postUrl,
+  author: {
+    '@type': 'Person',
+    name: 'Adel Zaalouk',
+    url: 'https://adelzaalouk.com/about/',
+    sameAs: ['https://www.linkedin.com/in/adelzaalouk/', 'https://thetechnomist.com/'],
+  },
+  publisher: {
+    '@type': 'Person',
+    name: 'Adel Zaalouk',
+  },
+  keywords: tags,
+});
 ---
 
-<Base title={title} description={post.data.summary}>
+<Base title={title} description={post.data.summary} image={postImage} type={type} date={date} updated={updated} tags={tags}>
+  <script type="application/ld+json" set:html={jsonLd} />
   <TableOfContents />
   <div class="post-layout">
     <div class="post-main">
